@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'password',
+        'role',
+        'is_super',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_super' => 'boolean', // عشان يقراه لارافيل كـ True/False
+        ];
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id'); // تأكد إن الـ foreign key هو user_id في جدول الأوردرات
+    }
+
+    public function wallet()
+{
+    return $this->hasOne(Wallet::class);
+}
+
+
+    public function isAdmin(): bool
+    {
+        // تم تعديلها لتتوافق مع الـ role 'admin' اللي مسجل في الداتا بيز والـ Seeder
+        return $this->role === 'admin' || $this->role === 'catalog_master_root' || $this->is_super === true;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super === true;
+    }
+}
