@@ -70,7 +70,7 @@
                         <!-- عرض الرصيد المتاح من جدول المحافظ مباشرة (أداء سريع جداً) -->
                         <td>
                             <span class="fw-bold text-success">
-                                {{ $customer->wallet->balance ?? 0 }} EGP
+                                {{ $customer->wallet->balance ?? 0 }} {{ config('shop.currency') }}
                             </span>
                         </td>
 

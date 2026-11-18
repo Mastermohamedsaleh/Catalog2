@@ -18,9 +18,7 @@
     <div class="nav-label">Merchant</div>
     <a class="nav-link" href="{{ route('merchant.orders.index') }}"><i class="bi bi-cart-plus"></i>New order</a>
     <a class="nav-link active" href="{{ route('merchant.wallet') }}"><i class="bi bi-wallet2"></i>My wallet</a>
-<a class="nav-link" href="{{ route('merchant.profile.edit') }}">
-    <i class="bi bi-person me-2"></i>My Profile
-</a>
+    <a class="nav-link" href="{{ route('merchant.profile') }}"><i class="bi bi-person-circle"></i>My profile</a>
     <div class="nav-label">Site</div>
     <a class="nav-link" href="{{ url('/') }}" target="_blank"><i class="bi bi-globe2"></i>View catalog</a>
   </nav>
@@ -64,8 +62,8 @@
         <div class="hero p-4 h-100 d-flex flex-column justify-content-between" style="border-radius:1.25rem;min-height:190px">
           <div class="position-relative" style="z-index:1">
             <div class="d-flex align-items-center gap-2 opacity-75 mb-2"><i class="bi bi-wallet2"></i><span class="small">Available balance</span></div>
-            <!-- عرض الرصيد المحسوب بدقة (الـ 100 جنيه) -->
-            <div class="display-5 fw-bold" id="wAvail">{{ $merchant->calculated_wallet ?? ($merchant->wallet ?? 0) }} EGP</div>
+            <!-- عرض الرصيد المحسوب بدقة (بالعملة المحددة في config/shop.php) -->
+            <div class="display-5 fw-bold" id="wAvail">{{ $merchant->calculated_wallet ?? ($merchant->wallet ?? 0) }} {{ config('shop.currency') }}</div>
           </div>
           <div class="position-relative small opacity-75" style="z-index:1"><i class="bi bi-info-circle me-1"></i>Profit is added to your wallet after the order is delivered and confirmed by admin.</div>
         </div>
@@ -77,7 +75,7 @@
           <div class="col-sm-6">
             <div class="card-soft stat-card p-3 p-lg-4 d-flex align-items-center gap-3 h-100">
               <div class="stat-icon" style="background:#fef3c7;color:#d97706"><i class="bi bi-hourglass-split"></i></div>
-              <div><div class="text-muted small">Pending profit</div><div class="h4 fw-bold mb-0" id="wPending">{{ $pendingProfit }} EGP</div></div>
+              <div><div class="text-muted small">Pending profit</div><div class="h4 fw-bold mb-0" id="wPending">{{ $pendingProfit }} {{ config('shop.currency') }}</div></div>
             </div>
           </div>
           <!-- Delivered orders -->
@@ -148,7 +146,7 @@
                               <span class="text-muted small">Pending</span>
                           @endif
                       </td>
-                      <td class="text-end fw-bold text-success">+{{ $order->profit }} EGP</td>
+                      <td class="text-end fw-bold text-success">+{{ $order->profit }} {{ config('shop.currency') }}</td>
                   </tr>
               @empty
                   <tr>

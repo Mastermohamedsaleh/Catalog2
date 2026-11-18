@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Support\Money;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -46,17 +47,19 @@ class WalletController extends Controller
     }
 
     /**
-     * Withdraw the whole balance (Vodafone Cash). The wallet row is locked, so two
+     * Withdraw the whole balance to the merchant's wallet number. The wallet row is locked, so two
      * parallel requests cannot both pay out, and a concurrent profit credit waits.
      */
     public function withdraw(Request $request)
     {
         $merchant = Auth::user();
 
+        $request->merge(['phone' => Phone::normalize($request->input('phone'))]);
+
         $request->validate([
-            'phone' => ['required', 'string', 'regex:/^01[0125][0-9]{8}$/'],
+            'phone' => ['required', 'string', Phone::rule()],
         ], [
-            'phone.regex' => 'رقم المحفظة غير صحيح، يجب أن يكون رقم محمول مصري مكون من 11 رقم (مثل 01012345678).',
+            'phone.regex' => 'رقم المحفظة غير صحيح. ' . Phone::message(),
         ]);
 
         try {
@@ -73,7 +76,7 @@ class WalletController extends Controller
                     'wallet_id'   => $wallet->id,
                     'type'        => 'debit',
                     'amount'      => $amount,
-                    'description' => 'سحب أرباح أونلاين على رقم فودافون كاش: ' . $request->phone,
+                    'description' => 'سحب أرباح على رقم المحفظة: ' . $request->phone,
                 ]);
 
                 $wallet->decrement('balance', $amount);
@@ -89,6 +92,6 @@ class WalletController extends Controller
             return back()->withErrors(['error' => 'عذراً، لا يوجد رصيد متاح للسحب حالياً!']);
         }
 
-        return back()->with('success', 'تم تقديم طلب سحب الأرباح بنجاح، وتصفير الخزنة في انتظار التحويل على رقم فودافون كاش الخاص بك!');
+        return back()->with('success', 'تم تقديم طلب سحب الأرباح بنجاح، وتصفير الخزنة في انتظار التحويل على رقم المحفظة الخاص بك!');
     }
 }

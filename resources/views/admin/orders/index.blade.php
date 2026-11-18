@@ -23,7 +23,7 @@
     @if ($errors->any())
         <div class="alert alert-danger m-3 mb-0 rounded-3 shadow-sm border-0 d-flex align-items-center" role="alert">
             <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
-            <div><strong>تنبيه!</strong> برجاء مراجعة البيانات المدخلة وتصحيح الأخطاء أدناه: {{ $errors->first() }}</div>
+            <div><strong>تنبيه!</strong> برجاء مراجعة البيانات المدخلة وتصحيح الأخطاء أدناه.</div>
         </div>
     @endif
 
@@ -48,7 +48,6 @@
                 <tr>
                     <th>#</th>
                     <th>Customer Info</th>
-                
                     <th>Product</th>
                     <th>Prices (Cost / Sell)</th>
                     <th>Profit</th>
@@ -56,7 +55,6 @@
                     <th>Qty</th>
                     <th>Status</th>
                     <th>Marketer</th>
-                    <th>address</th>
                     <th>Date</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -67,22 +65,20 @@
                         <td>{{ $orders->firstItem() + $loop->index }}</td>
                         <td>
                             <div class="fw-semibold">{{ $order->customer_name }}</div>
-
+                            <div class="small text-muted"><i class="bi bi-envelope me-1"></i>{{ $order->customer_email ?? 'No Email Provided' }}</div>
                             <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ $order->customer_phone }}</div>
                         </td>
-               
-
                         <td>
                             <a href="{{ route('shop.product.show', $order->product_id) }}" target="_blank" class="fw-semibold text-primary text-decoration-none" title="View Product Details">
                                 {{ $order->product->name ?? '—' }} <i class="bi bi-box-arrow-up-right small ms-1 opacity-75"></i>
                             </a>
                         </td>
                         <td>
-                            <div class="small text-muted">Cost: <span class="fw-semibold text-dark">{{ $order->product_price }} EGP</span></div>
-                            <div class="small text-muted">Sell: <span class="fw-semibold text-dark">{{ $order->selling_price }} EGP</span></div>
+                            <div class="small text-muted">Cost: <span class="fw-semibold text-dark">{{ $order->product_price }} {{ config('shop.currency') }}</span></div>
+                            <div class="small text-muted">Sell: <span class="fw-semibold text-dark">{{ $order->selling_price }} {{ config('shop.currency') }}</span></div>
                         </td>
                         <td>
-                            <span class="badge badge-soft-success fw-bold">+{{ $order->profit }} EGP</span>
+                            <span class="badge badge-soft-success fw-bold">+{{ $order->profit }} {{ config('shop.currency') }}</span>
                         </td>
                         <td>
                             @if($order->variant)
@@ -115,7 +111,7 @@
                                 <span class="badge bg-{{ $color }} text-capitalize">{{ $order->status }}</span>
                             </div>
                             
-                            <!-- زرار عرض/تعديل سبب الإلغاء أو الإرجاع -->
+                            <!-- زرار صغير منظم لعرض/تعديل سبب الإلغاء أو الإرجاع بدون تخريب الجدول -->
                             @if(in_array($order->status, ['cancelled', 'returned']) && $order->cancellation_reason)
                                 <div class="mt-1">
                                     <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" 
@@ -126,8 +122,8 @@
                             @endif
                         </td>
                         <td class="small text-muted">
-{{ implode(' ', array_slice(explode(' ', trim($order->user->name ?? '')), 0, 2)) }}                        </td>
-                                 <td>{{ $order->customer_address }}</td>
+                            {{ $order->user->name ?? 'System' }}
+                        </td>
                         <td class="small text-muted">
                             {{ $order->created_at->diffForHumans() }}
                         </td>
@@ -141,7 +137,7 @@
                             </button>
 
                             <!-- زرار الحذف -->
-                            <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline delete-form" data-order-id="{{ $order->id }}">
+                            <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-light text-danger" aria-label="Delete" title="Delete Order">
@@ -187,6 +183,7 @@
             <div class="modal-body text-start">
                 <p class="small text-muted mb-3 text-end">العميل: <strong>{{ $order->customer_name }}</strong></p>
 
+                <!-- حماية واجهة المودال إذا وصل الطلب لحالة نهائية -->
                 @if(in_array($order->status, ['delivered', 'cancelled', 'returned']))
                     <div class="alert alert-warning small text-end">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i> تنبيه: هذا الطلب في حالة نهائية (<strong>{{ $order->status }}</strong>) ولا يمكن تعديل حالته لحماية السجل المالي والمحفظة.
@@ -195,7 +192,7 @@
                     <!-- اختيار الحالة (Select) -->
                     <div class="mb-3 text-end">
                         <label class="form-label small fw-semibold">حالة الطلب <span class="text-danger">*</span></label>
-                        <select name="status" class="form-select order-status-select" required>
+                        <select name="status" class="form-select" required>
                             <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>قيد الانتظار (Pending)</option>
                             <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>جاري التجهيز (Processing)</option>
                             <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>تم الشحن (Shipped)</option>
@@ -205,10 +202,10 @@
                         </select>
                     </div>
 
-                    <!-- سبب الإلغاء أو الإرجاع (يظهر ديناميكياً فقط عند اختيار ملغي أو مرتجع) -->
-                    <div class="mb-3 text-end reason-wrapper" style="display: {{ in_array($order->status, ['cancelled', 'returned']) ? 'block' : 'none' }};">
-                        <label class="form-label small fw-semibold">سبب الإلغاء أو الإرجاع <span class="text-danger">*</span></label>
-                        <textarea name="cancellation_reason" class="form-control reason-textarea" rows="3" placeholder="اكتب السبب هنا..." {{ in_array($order->status, ['cancelled', 'returned']) ? 'required' : '' }}>{{ $order->cancellation_reason }}</textarea>
+                    <!-- سبب الإلغاء أو الإرجاع -->
+                    <div class="mb-3 text-end">
+                        <label class="form-label small fw-semibold">سبب الإلغاء أو الإرجاع <span class="text-danger">(لو تم اختيار ملغي أو مرتجع)</span></label>
+                        <textarea name="cancellation_reason" class="form-control" rows="3" placeholder="اكتب السبب هنا...">{{ $order->cancellation_reason }}</textarea>
                     </div>
                 @endif
             </div>
@@ -262,32 +259,11 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. تأكيد الحذف
+    // تأكيد الحذف
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function (e) {
-            const orderId = this.getAttribute('data-order-id') || '';
-            if (!confirm(`هل أنت متأكد من حذف الطلب رقم #${orderId} نهائياً؟`)) {
+            if (!confirm('Are you sure you want to delete this order?')) {
                 e.preventDefault();
-            }
-        });
-    });
-
-    // 2. التحكم الديناميكي في ظهور حقل السبب بناءً على الحالة المختارة داخل كل مودال
-    document.querySelectorAll('.order-status-select').forEach(select => {
-        select.addEventListener('change', function () {
-            const form = this.closest('form');
-            const reasonWrapper = form.querySelector('.reason-wrapper');
-            const reasonTextarea = form.querySelector('.reason-textarea');
-
-            if (!reasonWrapper || !reasonTextarea) return;
-
-            if (this.value === 'cancelled' || this.value === 'returned') {
-                reasonWrapper.style.display = 'block';
-                reasonTextarea.setAttribute('required', 'required');
-            } else {
-                reasonWrapper.style.display = 'none';
-                reasonTextarea.removeAttribute('required');
-                reasonTextarea.value = ''; // تفريغ النص إذا تم تغيير الحالة لحالة أخرى
             }
         });
     });

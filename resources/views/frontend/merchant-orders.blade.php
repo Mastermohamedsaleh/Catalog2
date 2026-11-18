@@ -18,9 +18,7 @@
     <div class="nav-label">Merchant</div>
     <a class="nav-link active" href="{{ route('merchant.orders.index') }}"><i class="bi bi-cart-plus"></i>New order</a>
     <a class="nav-link" href="{{ route('merchant.wallet') }}"><i class="bi bi-wallet2"></i>My wallet</a>
-<a class="nav-link" href="{{ route('merchant.profile.edit') }}">
-    <i class="bi bi-person me-2"></i>My Profile
-</a>
+    <a class="nav-link" href="{{ route('merchant.profile') }}"><i class="bi bi-person-circle"></i>My profile</a>
     <div class="nav-label">Site</div>
     <a class="nav-link" href="{{ url('/') }}" target="_blank"><i class="bi bi-globe2"></i>View catalog</a>
   </nav>
@@ -41,7 +39,7 @@
     <button class="btn btn-light d-lg-none" data-sidebar-toggle aria-label="Menu"><i class="bi bi-list fs-5"></i></button>
     <h1 class="h5 fw-bold mb-0 me-auto">New order</h1>
     <a href="{{ route('merchant.wallet') }}" class="btn btn-light btn-sm d-flex align-items-center gap-2" title="Wallet balance">
-      <i class="bi bi-wallet2 text-primary"></i><span class="fw-semibold">{{ \App\Models\Order::where('user_id', Auth::id())->where('status', 'delivered')->sum('profit') }} EGP</span>
+      <i class="bi bi-wallet2 text-primary"></i><span class="fw-semibold">{{ \App\Models\Order::where('user_id', Auth::id())->where('status', 'delivered')->sum('profit') }} {{ config('shop.currency') }}</span>
     </a>
     <div class="dropdown">
       <a href="#" class="d-flex align-items-center gap-2 text-dark" data-bs-toggle="dropdown">
@@ -110,13 +108,16 @@
         <!-- سعر المنتج الأساسي -->
         <div class="col-6 col-md-3">
           <label for="productPrice" class="form-label small fw-semibold">Product price <span class="text-muted fw-normal">(cost)</span></label>
-          <div class="input-group"><input type="number" class="form-control bg-light" id="productPrice" name="product_price" readonly tabindex="-1" placeholder="0"><span class="input-group-text">EGP</span></div>
+          <div class="input-group"><input type="number" class="form-control bg-light" id="productPrice" name="product_price" readonly tabindex="-1" placeholder="0"><span class="input-group-text">{{ config('shop.currency') }}</span></div>
+          <!-- تفصيل التكلفة: السعر الأساسي + فرق المقاس = التكلفة النهائية اللي لازم البيع ما ينزلش عنها -->
+          <div class="form-text" id="costBreakdown"></div>
         </div>
 
         <!-- سعر البيع للعميل -->
         <div class="col-md-4">
           <label for="sellingPrice" class="form-label small fw-semibold">Selling price <span class="text-muted fw-normal">(per item)</span> <span class="text-danger">*</span></label>
-          <div class="input-group"><input type="number" class="form-control" id="sellingPrice" name="selling_price" min="0" step="0.01" required placeholder="0.00"><span class="input-group-text">EGP</span></div>
+          <div class="input-group"><input type="number" class="form-control" id="sellingPrice" name="selling_price" min="0" step="0.01" required placeholder="0.00"><span class="input-group-text">{{ config('shop.currency') }}</span></div>
+          <div class="form-text fw-semibold" id="minSellHint"></div>
           <div class="invalid-feedback">Selling price must be at least the product price.</div>
         </div>
 
@@ -144,7 +145,7 @@
         </div>
         <div class="col-md-6">
           <label for="customerPhone" class="form-label small fw-semibold">Customer phone <span class="text-danger">*</span></label>
-          <div class="input-icon"><i class="bi bi-telephone"></i><input type="tel" class="form-control" id="customerPhone" name="customer_phone" required placeholder="01XXXXXXXXX"><div class="invalid-feedback">Enter valid phone number.</div></div>
+          <div class="input-icon"><i class="bi bi-telephone"></i><input type="tel" class="form-control" id="customerPhone" name="customer_phone" required placeholder="05XXXXXXXX"><div class="invalid-feedback">Enter valid phone number.</div></div>
         </div>
         <div class="col-12">
           <label for="customerAddress" class="form-label small fw-semibold">Customer address <span class="text-danger">*</span></label>
@@ -197,8 +198,8 @@
                       </td>
                       <td>{{ $order->customer_name }}<br><small class="text-muted">{{ $order->customer_phone }}</small></td>
                       <td class="d-none d-xxl-table-cell small text-muted">{{ $order->customer_address }}</td>
-                      <td>{{ $order->product_price }} EGP</td>
-                      <td>{{ $order->selling_price }} EGP</td>
+                      <td>{{ $order->product_price }} {{ config('shop.currency') }}</td>
+                      <td>{{ $order->selling_price }} {{ config('shop.currency') }}</td>
                       <td>{{ $order->stock }}</td>
                       <td>
                         @if($order->variant)
@@ -214,7 +215,7 @@
                             <span class="text-muted small">No variant</span>
                         @endif
                       </td>
-                      <td class="fw-bold text-success">+{{ $order->profit }} EGP</td>
+                      <td class="fw-bold text-success">+{{ $order->profit }} {{ config('shop.currency') }}</td>
                       <td>
                           @if($order->status == 'pending') 
                               <div class="d-flex align-items-center gap-2">
@@ -320,6 +321,7 @@
 
 <script>
     const productSearchUrl = @json(route('merchant.products.search'));
+    const CURRENCY = @json(config('shop.currency'));
 </script>
 
 <script>
@@ -337,6 +339,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const variantSelect = document.getElementById('variantSelect');
     const orderForm = document.getElementById('orderForm');
 
+    const costBreakdown = document.getElementById('costBreakdown');
+    const minSellHint = document.getElementById('minSellHint');
+    const toCents = n => Math.round((parseFloat(n) || 0) * 100);
+    const money = cents => (cents / 100).toFixed(2);
+
+    // التكلفة الحقيقية = سعر المنتج الأساسي + فرق سعر المقاس المختار (نفس معادلة السيرفر بالظبط).
+    // لو التاجر شاف السعر الأساسي بس هيفتكر إنه الحد الأدنى للبيع، فبنوريه التفصيل والحد الأدنى صراحةً.
+    function setCost(baseCents, modifierCents) {
+        const cost = baseCents + modifierCents;
+        productPriceInput.value = cost > 0 ? money(cost) : '';
+        sellingPriceInput.min = cost > 0 ? money(cost) : '0';
+
+        if (!baseCents) {
+            costBreakdown.textContent = '';
+            minSellHint.textContent = '';
+        } else {
+            costBreakdown.textContent = modifierCents !== 0
+                ? `Base ${money(baseCents)} ${modifierCents > 0 ? '+' : '−'} size difference ${money(Math.abs(modifierCents))} = ${money(cost)} ${CURRENCY}`
+                : `Base price ${money(baseCents)} ${CURRENCY}`;
+            minSellHint.textContent = `Minimum selling price: ${money(cost)} ${CURRENCY}`;
+        }
+        calculateProfit();
+    }
+    let currentBaseCents = 0;
+
     // Server-side search (debounced) instead of shipping the whole catalog to every page view.
     function renderResults(list) {
         resultsBox.innerHTML = '';
@@ -352,14 +379,16 @@ document.addEventListener('DOMContentLoaded', function () {
             strong.textContent = `${product.sku ? '[' + product.sku + '] ' : ''}${product.name}`;
             let price = document.createElement('span');
             price.className = 'text-primary';
-            price.textContent = `${product.price} EGP`;
+            const sizesDiffer = (product.variants || []).some(v => toCents(v.price_modifier) !== 0);
+            price.textContent = `${product.price} ${CURRENCY}` + (sizesDiffer ? ' (+ size difference)' : '');
             item.append(strong, ' — ', price, ` (Stock: ${product.stock})`);
 
             item.addEventListener('click', function (e) {
                 e.preventDefault();
                 searchInput.value = `${product.sku ? product.sku + ' - ' : ''}${product.name}`;
                 productIdInput.value = product.id;
-                productPriceInput.value = product.price;
+                currentBaseCents = toCents(product.price);
+                setCost(currentBaseCents, 0);
 
                 variantSelect.innerHTML = '<option value="">Choose size/color...</option>';
                 if (product.variants && product.variants.length > 0) {
@@ -368,8 +397,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     product.variants.forEach(variant => {
                         let opt = document.createElement('option');
                         opt.value = variant.id;
-                        opt.textContent = `${variant.size ?? ''} ${variant.color ? '(' + variant.color + ')' : ''} — Stock: ${variant.stock}`;
+                        const finalCents = toCents(product.price) + toCents(variant.price_modifier);
+                        opt.textContent = `${variant.size ?? ''} ${variant.color ? '(' + variant.color + ')' : ''} — ${money(finalCents)} ${CURRENCY} — Stock: ${variant.stock}`;
                         opt.setAttribute('data-stock', variant.stock);
+                        opt.setAttribute('data-modifier', variant.price_modifier ?? 0);
                         variantSelect.appendChild(opt);
                     });
                     if (stockHint) stockHint.textContent = `Select a variant size`;
@@ -415,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const stock = parseInt(selectedOpt.getAttribute('data-stock')) || 0;
             qtyInput.max = stock;
             if(stockHint) stockHint.textContent = `Available stock for size: ${stock}`;
-            calculateProfit();
+            setCost(currentBaseCents, toCents(selectedOpt.getAttribute('data-modifier')));
         });
     }
 
@@ -435,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalProfit = totalSelling - totalCost;
 
         if (selling > 0 && totalProfit >= 0) {
-            profitText.textContent = totalProfit.toFixed(2) + ' EGP';
+            profitText.textContent = totalProfit.toFixed(2) + ' ' + CURRENCY;
             profitInput.value = totalProfit.toFixed(2);
         } else {
             profitText.textContent = '—';
@@ -452,7 +483,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 searchInput.focus();
                 return false;
             }
+            // منع البيع بأقل من التكلفة (السيرفر بيرفضه برضه، بس كده التاجر يعرف السبب قبل الإرسال)
+            if (toCents(sellingPriceInput.value) < toCents(productPriceInput.value)) {
+                e.preventDefault();
+                sellingPriceInput.classList.add('is-invalid');
+                sellingPriceInput.focus();
+                return false;
+            }
         });
+        orderForm.addEventListener('reset', function () {
+            currentBaseCents = 0;
+            setCost(0, 0);
+            sellingPriceInput.classList.remove('is-invalid');
+        });
+        sellingPriceInput.addEventListener('input', () => sellingPriceInput.classList.remove('is-invalid'));
     }
 });
 </script>

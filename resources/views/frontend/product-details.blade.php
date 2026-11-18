@@ -94,20 +94,33 @@
           <a href="{{ route('shop.category', $product->category->slug) }}" class="badge badge-soft-primary mb-3">{{ $product->category->name }}</a>
       @endif
       <h1 class="fw-bold mb-2">{{ $product->name }}</h1>
-      <div class="h2 price mb-3">{{ $product->price }} EGP</div>
+      @if($product->sku)
+          <div class="text-muted small mb-2">Product code (SKU): <span class="fw-semibold text-dark user-select-all" dir="ltr">{{ $product->sku }}</span></div>
+      @endif
+      <div class="h2 price mb-1">{{ $product->price }} {{ config('shop.currency') }}</div>
+      @if($product->variants->contains(fn ($v) => (float) $v->price_modifier != 0))
+          <div class="small text-muted mb-3">Base price. The final price depends on the size, see below.</div>
+      @else
+          <div class="mb-3"></div>
+      @endif
       <p class="text-muted">{{ $product->description ?? 'No description available for this product.' }}</p>
 
       <!-- عرض المقاسات والمخزون باللغة الإنجليزية -->
       @if($product->variants && $product->variants->count() > 0)
           <div class="mb-4 p-3 bg-light rounded-4 border">
-              <label class="form-label small fw-bold mb-2 text-dark"><i class="bi bi-tags-fill me-1 text-primary"></i> Sizes & Available Stock:</label>
+              <label class="form-label small fw-bold mb-2 text-dark"><i class="bi bi-tags-fill me-1 text-primary"></i> Sizes, final price & available stock:</label>
               <div class="d-flex flex-wrap gap-2">
                   @foreach($product->variants as $variant)
+                      @php
+                          $mod = (float) $variant->price_modifier;
+                          $final = (float) $product->price + $mod;
+                      @endphp
                       <div class="badge bg-white text-dark border p-2 shadow-sm d-flex align-items-center gap-1">
                           <span class="fw-bold text-primary">Size: {{ $variant->size }}</span> 
                           @if($variant->color)
                               <span class="text-muted">| Color: {{ $variant->color }}</span>
                           @endif
+                          <span class="text-muted">| Price: <strong class="text-dark">{{ number_format($final, 2, '.', '') }} {{ config('shop.currency') }}</strong>@if($mod != 0) ({{ $mod > 0 ? '+' : '−' }}{{ number_format(abs($mod), 2, '.', '') }})@endif</span>
                           <span class="ms-1 badge {{ $variant->stock > 0 ? 'bg-success' : 'bg-danger' }}">
                               {{ $variant->stock }} available
                           </span>
@@ -119,33 +132,42 @@
 
       <ul class="list-unstyled small mb-4">
         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Total Stock: {{ $product->stock ?? 0 }} available</li>
-        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Code Product: {{ $product->sku }} </li>
         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Original, quality-checked product</li>
         <li><i class="bi bi-check-circle-fill text-success me-2"></i>Fast delivery &amp; support</li>
       </ul>
 
       <div class="d-grid gap-2">
-        <a href="https://wa.me/201000000000?text={{ urlencode('مرحباً، أهتم بالاستفسار عن المنتج: ' . $product->name) }}" target="_blank" class="btn btn-primary btn-lg fw-semibold shadow-sm">
+        <a href="https://wa.me/{{ config('shop.whatsapp') }}?text={{ urlencode('مرحباً، أهتم بالاستفسار عن المنتج: ' . $product->name) }}" target="_blank" class="btn btn-primary btn-lg fw-semibold shadow-sm">
           <i class="bi bi-whatsapp me-2"></i> Inquire via WhatsApp
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Videos & Download Video -->
-  @if($product->video_url)
+  <!-- Product video: hosted at Bunny, played through a signed, expiring URL -->
+  @if($product->video_embed_url || $product->has_legacy_video)
   <section class="mt-5">
     <h2 class="h4 fw-bold mb-3">Product video</h2>
     <div class="row g-3">
       <div class="col-md-8">
-        <video width="100%" controls class="rounded-4 shadow-sm border mb-3" style="max-height: 350px;" id="productVideo">
-            <source src="{{ asset('storage/' . $product->video_url) }}" type="video/mp4">
-            متصفحك لا يدعم عرض الفيديو.
-        </video>
-        <!-- زر تحميل الفيديو (نفس تصميم زرار الواتساب) -->
-        <a href="{{ asset('storage/' . $product->video_url) }}" download class="btn btn-primary btn-lg w-100 fw-semibold shadow-sm">
-            <i class="bi bi-download me-2"></i> Download Video
-        </a>
+        @if($product->video_embed_url)
+          <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow-sm border mb-3">
+            <iframe src="{{ $product->video_embed_url }}" loading="lazy" title="{{ $product->name }}"
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          @if($product->video_download_url)
+            <a href="{{ $product->video_download_url }}" target="_blank" rel="noopener" class="btn btn-primary btn-lg w-100 fw-semibold shadow-sm">
+                <i class="bi bi-download me-2"></i> Open / Download Video
+            </a>
+          @endif
+        @else
+          <video width="100%" controls preload="none" class="rounded-4 shadow-sm border mb-3" style="max-height: 350px;" id="productVideo">
+              <source src="{{ asset('storage/' . $product->video_url) }}" type="video/mp4">
+          </video>
+          <a href="{{ asset('storage/' . $product->video_url) }}" download class="btn btn-primary btn-lg w-100 fw-semibold shadow-sm">
+              <i class="bi bi-download me-2"></i> Download Video
+          </a>
+        @endif
       </div>
     </div>
   </section>
@@ -174,7 +196,7 @@
     <div class="row g-4 mb-4">
       <div class="col-lg-4"><div class="fs-5 fw-bold text-white mb-2"><i class="bi bi-grid-fill me-2"></i>CatalogPro</div><p class="small mb-0">Quality products, honest prices and real support since 2015.</p></div>
       <div class="col-6 col-lg-2"><div class="text-white fw-semibold mb-2">Links</div><ul class="list-unstyled small mb-0"><li><a class="text-reset" href="{{ url('/') }}#about">About us</a></li><li><a class="text-reset" href="{{ url('/') }}#services">What we offer</a></li><li><a class="text-reset" href="{{ route('shop.categories.index') }}">Categories</a></li><li><a class="text-reset" href="{{ url('/') }}#contact">Contact</a></li></ul></div>
-      <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2"></i>+20 100 000 0000</li><li><i class="bi bi-envelope me-2"></i>info@catalogpro.com</li><li><i class="bi bi-geo-alt me-2"></i>Nasr City, Cairo</li></ul></div>
+      <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2"></i>{{ \App\Support\Phone::display(config('shop.phone')) }}</li><li><i class="bi bi-envelope me-2"></i>{{ config('shop.email') }}</li><li><i class="bi bi-geo-alt me-2"></i>{{ config('shop.city') }}</li></ul></div>
       <div class="col-lg-3"><div class="text-white fw-semibold mb-2">Follow us</div><div class="d-flex gap-3 fs-5"><a class="text-reset" href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a><a class="text-reset" href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a><a class="text-reset" href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a></div></div>
     </div>
 

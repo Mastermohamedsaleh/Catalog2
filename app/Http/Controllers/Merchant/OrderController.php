@@ -9,6 +9,7 @@ use App\Models\ProductVariant;
 use App\Services\OrderStatusService;
 use App\Services\StockService;
 use App\Support\Money;
+use App\Support\Phone;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,16 +49,20 @@ class OrderController extends Controller
 
     public function store(Request $request, StockService $stock)
     {
+        // رقم العميل بيتحوّل للصيغة الموحدة 05XXXXXXXX قبل التحقق والحفظ،
+        // عشان فحص "الأوردر المكرر" والبحث في لوحة الأدمن يشتغلوا على شكل واحد للرقم.
+        $request->merge(['customer_phone' => Phone::normalize($request->input('customer_phone'))]);
+
         $data = $request->validate([
             'product_id'         => 'required|integer|exists:products,id',
             'product_variant_id' => 'nullable|integer',
             'stock'              => 'required|integer|min:1|max:1000',
             'customer_name'      => 'required|string|max:255',
-            'customer_phone'     => ['required', 'string', 'regex:/^01[0125][0-9]{8}$/'],
+            'customer_phone'     => ['required', 'string', Phone::rule()],
             'customer_address'   => 'required|string|max:500',
             'selling_price'      => 'required|numeric|min:0|max:99999999',
         ], [
-            'customer_phone.regex' => 'رقم هاتف العميل غير صحيح، يجب أن يكون رقم محمول مصري مكون من 11 رقم.',
+            'customer_phone.regex' => 'رقم هاتف العميل غير صحيح. ' . Phone::message(),
         ]);
 
         $qty = (int) $data['stock'];

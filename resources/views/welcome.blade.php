@@ -32,7 +32,7 @@
         <li class="nav-item"><a class="nav-link" href="{{ route('merchant.orders.index') }}">Create New Order</a></li>
       </ul>
       <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
-        <a href="tel:+201000000000" class="btn btn-light btn-sm d-none d-xl-inline-flex gap-1"><i class="bi bi-telephone-fill text-primary"></i>+20 100 000 0000</a>
+        <a href="tel:+{{ config('shop.phone') }}" class="btn btn-light btn-sm d-none d-xl-inline-flex gap-1"><i class="bi bi-telephone-fill text-primary"></i>{{ \App\Support\Phone::display(config('shop.phone')) }}</a>
         @auth
     @if(Auth::user()->isAdmin())
         <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">Dashboard</a>
@@ -59,7 +59,7 @@
           <p class="lead opacity-75 mb-4">We supply a wide range of products for homes and businesses, with full details, photos and videos for every item, so you can choose with confidence.</p>
           <div class="d-flex flex-wrap gap-2">
             <a href="#categories" class="btn btn-light btn-lg text-primary fw-semibold px-4">Browse products</a>
-            <a href="tel:+201000000000" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-telephone me-2"></i>Call us now</a>
+            <a href="tel:+{{ config('shop.phone') }}" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-telephone me-2"></i>Call us now</a>
           </div>
         </div>
         <div class="col-lg-5">
@@ -79,7 +79,7 @@
     <div class="row align-items-center g-4 g-lg-5">
       <div class="col-lg-6">
         <div class="about-visual ph g1"><i class="bi bi-buildings"></i>
-          <div class="about-badge"><span class="fw-bold text-primary">Since 2015</span><br><span class="small text-muted">Serving customers across Egypt</span></div>
+          <div class="about-badge"><span class="fw-bold text-primary">Since 2015</span><br><span class="small text-muted">Serving customers across {{ config('shop.country') }}</span></div>
         </div>
       </div>
       <div class="col-lg-6">
@@ -186,7 +186,7 @@
   <section class="container sec pt-0">
     <div class="text-center mb-5"><span class="eyebrow">Testimonials</span><h2 class="fw-bold">What our customers say</h2></div>
     <div class="row g-3 g-lg-4">
-      <div class="col-md-4"><div class="feature-card"><div class="text-warning mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><p class="small text-muted">"Great quality and the team answered all my questions quickly. Delivery was on time."</p><div class="fw-semibold small">Ahmed M. <span class="text-muted fw-normal">· Cairo</span></div></div></div>
+      <div class="col-md-4"><div class="feature-card"><div class="text-warning mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><p class="small text-muted">"Great quality and the team answered all my questions quickly. Delivery was on time."</p><div class="fw-semibold small">Ahmed M. <span class="text-muted fw-normal">· {{ config('shop.city') }}</span></div></div></div>
       <div class="col-md-4"><div class="feature-card"><div class="text-warning mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><p class="small text-muted">"The downloadable spec sheets made it easy to compare products for our office."</p><div class="fw-semibold small">Sara K. <span class="text-muted fw-normal">· Giza</span></div></div></div>
       <div class="col-md-4"><div class="feature-card"><div class="text-warning mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div><p class="small text-muted">"Fair prices and honest advice. I will definitely order again."</p><div class="fw-semibold small">Omar H. <span class="text-muted fw-normal">· Alexandria</span></div></div></div>
     </div>
@@ -197,24 +197,24 @@
     <div class="text-center mb-5"><span class="eyebrow">Contact &amp; location</span><h2 class="fw-bold mb-2">Visit us or get in touch</h2><p class="text-muted mb-0">We would love to hear from you.</p></div>
     <div class="row g-4">
       <div class="col-lg-5 d-flex flex-column gap-3">
-        <a class="contact-item" href="tel:+201000000000"><div class="feature-icon"><i class="bi bi-telephone-fill"></i></div><div><div class="fw-bold">Phone</div><div class="text-muted small">+20 100 000 0000</div></div></a>
-        <a class="contact-item" href="https://wa.me/201000000000" target="_blank" rel="noopener"><div class="feature-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-whatsapp"></i></div><div><div class="fw-bold">WhatsApp</div><div class="text-muted small">Chat with us instantly</div></div></a>
-        <a class="contact-item" href="mailto:info@catalogpro.com"><div class="feature-icon"><i class="bi bi-envelope-fill"></i></div><div><div class="fw-bold">Email</div><div class="text-muted small">info@catalogpro.com</div></div></a>
-        <div class="contact-item"><div class="feature-icon"><i class="bi bi-geo-alt-fill"></i></div><div><div class="fw-bold">Address</div><div class="text-muted small">123 Example Street, Nasr City, Cairo, Egypt</div></div></div>
+        <a class="contact-item" href="tel:+{{ config('shop.phone') }}"><div class="feature-icon"><i class="bi bi-telephone-fill"></i></div><div><div class="fw-bold">Phone</div><div class="text-muted small">{{ \App\Support\Phone::display(config('shop.phone')) }}</div></div></a>
+        <a class="contact-item" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener"><div class="feature-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-whatsapp"></i></div><div><div class="fw-bold">WhatsApp</div><div class="text-muted small">Chat with us instantly</div></div></a>
+        <a class="contact-item" href="mailto:{{ config('shop.email') }}"><div class="feature-icon"><i class="bi bi-envelope-fill"></i></div><div><div class="fw-bold">Email</div><div class="text-muted small">{{ config('shop.email') }}</div></div></a>
+        <div class="contact-item"><div class="feature-icon"><i class="bi bi-geo-alt-fill"></i></div><div><div class="fw-bold">Address</div><div class="text-muted small">{{ config('shop.address') }}</div></div></div>
         <div class="contact-item"><div class="feature-icon"><i class="bi bi-clock-fill"></i></div><div><div class="fw-bold">Working hours</div><div class="text-muted small">Sat – Thu: 9:00 AM – 6:00 PM<br>Friday: Closed</div></div></div>
       </div>
       <div class="col-lg-7">
         <div class="row g-4">
           <div class="col-12" style="min-height:300px">
             <iframe class="map-frame shadow-sm" title="Our location" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              src="https://maps.google.com/maps?q=Nasr%20City%2C%20Cairo%2C%20Egypt&output=embed"></iframe>
+              src="https://maps.google.com/maps?q={{ rawurlencode(config('shop.map_query')) }}&output=embed"></iframe>
           </div>
           <div class="col-12">
             <form class="card-soft p-3 p-lg-4 needs-validation" data-success="Message sent. We will contact you soon.">
               <h3 class="h5 fw-bold mb-3">Send us a message</h3>
               <div class="row g-3">
                 <div class="col-sm-6"><label class="form-label small fw-semibold" for="cName">Name</label><input class="form-control" id="cName" required minlength="2" placeholder="Your name"><div class="invalid-feedback">Please enter your name.</div></div>
-                <div class="col-sm-6"><label class="form-label small fw-semibold" for="cPhone">Phone</label><input class="form-control" id="cPhone" type="tel" required pattern="[0-9+\s\-]{8,}" placeholder="+20 1XX XXX XXXX"><div class="invalid-feedback">Enter a valid phone number.</div></div>
+                <div class="col-sm-6"><label class="form-label small fw-semibold" for="cPhone">Phone</label><input class="form-control" id="cPhone" type="tel" required pattern="[0-9+\s\-]{8,}" placeholder="+971 5X XXX XXXX"><div class="invalid-feedback">Enter a valid phone number.</div></div>
                 <div class="col-12"><label class="form-label small fw-semibold" for="cMsg">Message</label><textarea class="form-control" id="cMsg" rows="3" required placeholder="How can we help?"></textarea><div class="invalid-feedback">Please write a message.</div></div>
                 <div class="col-12"><button class="btn btn-primary px-4" type="submit"><i class="bi bi-send me-2"></i>Send message</button></div>
               </div>
@@ -232,13 +232,13 @@
     <div class="row g-4 mb-4">
       <div class="col-lg-4"><div class="fs-5 fw-bold text-white mb-2"><i class="bi bi-grid-fill me-2"></i>CatalogPro</div><p class="small mb-0">Quality products, honest prices and real support since 2015.</p></div>
       <div class="col-6 col-lg-2"><div class="text-white fw-semibold mb-2">Links</div><ul class="list-unstyled small mb-0"><li><a class="text-reset" href="#about">About us</a></li><li><a class="text-reset" href="#services">What we offer</a></li><li><a class="text-reset" href="#categories">Categories</a></li><li><a class="text-reset" href="#contact">Contact</a></li></ul></div>
-      <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2"></i>+20 100 000 0000</li><li><i class="bi bi-envelope me-2"></i>info@catalogpro.com</li><li><i class="bi bi-geo-alt me-2"></i>Nasr City, Cairo</li></ul></div>
+      <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2"></i>{{ \App\Support\Phone::display(config('shop.phone')) }}</li><li><i class="bi bi-envelope me-2"></i>{{ config('shop.email') }}</li><li><i class="bi bi-geo-alt me-2"></i>{{ config('shop.city') }}</li></ul></div>
       <div class="col-lg-3"><div class="text-white fw-semibold mb-2">Follow us</div><div class="d-flex gap-3 fs-5"><a class="text-reset" href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a><a class="text-reset" href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a><a class="text-reset" href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a></div></div>
     </div>
   </div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/201000000000" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
+<a class="wa-float" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
 
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

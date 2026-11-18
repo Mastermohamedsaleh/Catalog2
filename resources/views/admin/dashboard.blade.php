@@ -50,7 +50,7 @@
             <div class="card-soft">
                 <div class="d-flex justify-content-between align-items-center p-3 p-lg-4 pb-2">
                     <h2 class="h6 fw-bold mb-0">Latest products</h2>
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-outline-primary">View all</a>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View all</a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-modern">
@@ -72,7 +72,7 @@
                                         </div>
                                     </td>
                                     <td>{{ $product->category->name ?? 'Uncategorized' }}</td>
-                                    <td>{{ number_format($product->price, 2) }} EGP</td>
+                                    <td>{{ number_format($product->price, 2) }} {{ config('shop.currency') }}</td>
                                     <td>
                                         @if($product->is_active)
                                             <span class="badge badge-soft-success">Published</span>
@@ -97,9 +97,11 @@
             <div class="card-soft p-3 p-lg-4 h-100">
                 <h2 class="h6 fw-bold mb-3">Quick actions</h2>
                 <div class="d-grid gap-2">
-                    <a href="{{ route('admin.categories.index') }}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add category</a>
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>Add product</a>
-      
+                    <a href="#" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add category</a>
+                    <a href="#" class="btn btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>Add product</a>
+                    <button class="btn btn-light" onclick="showToast('Cache cleared successfully', 'info')">
+                        <i class="bi bi-arrow-repeat me-1"></i>Clear cache
+                    </button>
                 </div>
             </div>
         </div>

@@ -91,17 +91,6 @@ class MediaService
     }
 
     /**
-     * رفع الفيديوهات أو الملفات العادية مباشرة بدون تعديل
-     */
-    public function uploadFile(?UploadedFile $file, string $folder = 'products/videos'): ?string
-    {
-        if (!$file) {
-            return null;
-        }
-        return $file->store($folder, 'public');
-    }
-
-    /**
      * حذف الملفات القديمة من التخزين نظيفاً
      */
     public function deleteFile(?string $path): void

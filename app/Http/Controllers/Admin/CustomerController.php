@@ -82,7 +82,7 @@ class CustomerController extends Controller
             return back()->with('error', 'عذراً، هذا التاجر ليس لديه رصيد متاح لتصفيره!');
         }
 
-        return back()->with('success', "تم تصفير محفظة التاجر ({$customer->name}) بنجاح بمبلغ {$amount} EGP!");
+        return back()->with('success', "تم تصفير محفظة التاجر ({$customer->name}) بنجاح بمبلغ {$amount} " . config('shop.currency') . '!');
     }
 
     /**

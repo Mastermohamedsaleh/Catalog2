@@ -33,13 +33,6 @@
         </div>
     @endif
 
-    @if (session('error'))
-        <div class="alert alert-danger m-3 mb-0 rounded-3 shadow-sm border-0 d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-octagon-fill fs-5 me-2"></i>
-            <div>{{ session('error') }}</div>
-        </div>
-    @endif
-
     @if (session('success'))
         <div class="alert alert-success m-3 mb-0 rounded-3 shadow-sm border-0 d-flex align-items-center" role="alert">
             <i class="bi bi-check-circle-fill fs-5 me-2"></i>
@@ -87,8 +80,12 @@
 
                         <!-- معاينة الفيديو -->
                         <td>
-                            @if($product->video_url)
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#videoModal{{ $product->id }}" title="Watch Video">
+                            @if($product->video_embed_url)
+                                <button type="button" class="btn btn-sm btn-outline-primary" data-video-preview="{{ $product->video_embed_url }}" title="Watch Video">
+                                    <i class="bi bi-play-circle-fill me-1"></i> Watch
+                                </button>
+                            @elseif($product->has_legacy_video)
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-video-preview="{{ asset('storage/' . $product->video_url) }}" data-video-file="1" title="Watch Video">
                                     <i class="bi bi-play-circle-fill me-1"></i> Watch
                                 </button>
                             @else
@@ -114,7 +111,7 @@
                             <span class="badge bg-light text-dark border">{{ $product->category->name ?? '—' }}</span>
                         </td>
                         <td>
-                            <span class="fw-bold text-primary">{{ $product->price }} EGP</span>
+                            <span class="fw-bold text-primary">{{ $product->price }} {{ config('shop.currency') }}</span>
                         </td>
                         <td>
                             @if($product->stock > 0)
@@ -138,7 +135,7 @@
                             </button>
 
                             <!-- زرار الحذف -->
-                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline delete-form" data-product-name="{{ $product->name }}">
+                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-light text-danger" title="Delete Product">
@@ -204,7 +201,7 @@
         <!-- السعر والمخزون -->
         <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label small fw-semibold">Wholesale Price (EGP) <span class="text-danger">*</span></label>
+              <label class="form-label small fw-semibold">Wholesale Price ({{ config('shop.currency') }}) <span class="text-danger">*</span></label>
               <input type="number" step="0.01" class="form-control @error('price') is-invalid @enderror" name="price" value="{{ old('price') }}" placeholder="e.g. 150" required>
             </div>
 
@@ -230,8 +227,8 @@
         <!-- الفيديو -->
         <div class="mb-3">
           <label class="form-label small fw-semibold">Product Video (MP4, MOV)</label>
-          <input type="file" class="form-control" name="video_url" accept="video/*">
-          <div class="form-text small text-muted">فيديو تسويقي للمنتج يستطيع المسوقون تحميله.</div>
+          @include('admin.products._video-uploader')
+          <div class="form-text small text-muted">فيديو تسويقي للمنتج يستطيع المسوقون مشاهدته وتحميله.</div>
         </div>
 
         <!-- قسم المتغيرات (المقاسات والألوان) -->
@@ -284,64 +281,8 @@
   </div>
 </div>
 
-<!-- ================= مودالات التعديل، الفيديو، والمعرض لكل منتج ================= -->
+<!-- ================= مودالات التعديل لكل منتج ================= -->
 @foreach($products as $product)
-
-<!-- 1. مودال الفيديو -->
-@if($product->video_url)
-<div class="modal fade video-modal" id="videoModal{{ $product->id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border-0 rounded-4 shadow-lg bg-dark text-white">
-      <div class="modal-header border-0">
-        <h6 class="modal-title fw-bold">{{ $product->name }} - Video Preview</h6>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-0 text-center bg-black">
-        <video controls class="w-100" style="max-height: 70vh;">
-            <source src="{{ asset('storage/' . $product->video_url) }}" type="video/mp4">
-            متصفحك لا يدعم تشغيل الفيديو.
-        </video>
-      </div>
-    </div>
-  </div>
-</div>
-@endif
-
-<!-- 2. مودال معرض الصور -->
-@if($product->images->count() > 0)
-<div class="modal fade" id="galleryModal{{ $product->id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content border-0 rounded-4 shadow-lg">
-      <div class="modal-header border-0">
-        <h6 class="modal-title fw-bold">معرض صور: {{ $product->name }}</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row g-3">
-            @foreach($product->images as $img)
-                <div class="col-6 col-md-4">
-                    <div class="position-relative border rounded-3 overflow-hidden shadow-sm bg-light" style="height: 180px;">
-                        <a href="{{ asset('storage/' . $img->image_path) }}" target="_blank">
-                            <img src="{{ asset('storage/' . $img->image_path) }}" class="w-100 h-100" style="object-fit: cover;">
-                        </a>
-                        <form action="{{ route('admin.products.images.destroy', $img->id) }}" method="POST" class="position-absolute top-0 end-0 m-2 delete-image-form">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm rounded-circle shadow" title="حذف الصورة">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-@endif
-
-<!-- 3. مودال التعديل -->
 <div class="modal fade" id="editProductModal{{ $product->id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
     <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 rounded-4 shadow-lg">
@@ -380,13 +321,14 @@
 
         <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label small fw-semibold">Wholesale Price (EGP) <span class="text-danger">*</span></label>
+              <label class="form-label small fw-semibold">Wholesale Price ({{ config('shop.currency') }}) <span class="text-danger">*</span></label>
               <input type="number" step="0.01" class="form-control" name="price" value="{{ $product->price }}" required>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="form-label small fw-semibold">Stock Quantity <span class="text-danger">*</span></label>
               <input type="number" class="form-control" name="stock" value="{{ $product->stock }}" min="0" required>
+              {{-- Stock as it was when this form opened: if it is unchanged on save, the live stock is kept so new orders are not overwritten. --}}
               <input type="hidden" name="original_stock" value="{{ $product->stock }}">
             </div>
         </div>
@@ -424,14 +366,7 @@
         <!-- الفيديو -->
         <div class="mb-3">
           <label class="form-label small fw-semibold">Product Video</label>
-          @if($product->video_url)
-              <div class="mb-2">
-                  <video width="160" controls class="rounded border">
-                      <source src="{{ asset('storage/' . $product->video_url) }}" type="video/mp4">
-                  </video>
-              </div>
-          @endif
-          <input type="file" class="form-control" name="video_url" accept="video/*">
+          @include('admin.products._video-uploader', ['product' => $product])
         </div>
 
         <!-- المتغيرات (تعديل وإضافة مقاسات جديدة) -->
@@ -442,7 +377,7 @@
             </div>
             
             <div id="editVariantsSection{{ $product->id }}" style="display: {{ $product->variants->count() > 0 ? 'block' : 'none' }};">
-                <p class="small text-muted mb-2">يمكنك تعديل أو إضافة مقاسات وألوان جديدة (مجموع المخزون يجب أن يساوي المخزون الإجمالي):</p>
+                <p class="small text-muted mb-2">يمكنك تعديل أو إضافة مقاسات ولون جديدة:</p>
                 <div id="editVariantsContainer{{ $product->id }}">
                     @if($product->variants->count() > 0)
                         @foreach($product->variants as $index => $variant)
@@ -505,42 +440,93 @@
 </div>
 @endforeach
 
+<div class="modal fade" id="videoPreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0"><h5 class="modal-title text-white">Video preview</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body pt-0"><div class="ratio ratio-16x9" id="videoPreviewBox"></div></div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js"></script>
+<script>
+(function () {
+    // ---- Direct upload to the video service (file never touches this server) ----
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+    document.querySelectorAll('.video-uploader').forEach(function (box) {
+        var file = box.querySelector('.video-file'), hid = box.querySelector('.video-id'),
+            wrap = box.querySelector('.progress'), bar = box.querySelector('.progress-bar'),
+            status = box.querySelector('.video-status'), form = box.closest('form'), busy = false;
+
+        function say(msg, cls) { status.className = 'form-text small video-status ' + (cls || ''); status.textContent = msg; }
+
+        file.addEventListener('change', function () {
+            var f = file.files[0];
+            hid.value = '';
+            if (!f) { say(''); return; }
+            if (f.type && f.type.indexOf('video/') !== 0) { file.value = ''; say('Please choose a video file.', 'text-danger'); return; }
+            if (f.size > 2 * 1024 * 1024 * 1024) { file.value = ''; say('Video is larger than 2 GB.', 'text-danger'); return; }
+
+            busy = true; file.disabled = true; wrap.classList.remove('d-none'); bar.style.width = '0%';
+            say('Preparing upload…');
+
+            fetch(box.dataset.prepareUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ title: f.name })
+            }).then(function (r) {
+                return r.json().then(function (j) { if (!r.ok) throw new Error(j.message || 'Could not start the upload.'); return j; });
+            }).then(function (t) {
+                return new Promise(function (resolve, reject) {
+                    new tus.Upload(f, {
+                        endpoint: t.endpoint,
+                        retryDelays: [0, 3000, 5000, 10000, 20000, 60000],
+                        headers: t.headers,
+                        metadata: { filetype: f.type, title: f.name },
+                        onError: reject,
+                        onProgress: function (sent, total) {
+                            var pct = Math.round(sent / total * 100);
+                            bar.style.width = pct + '%'; say('Uploading… ' + pct + '%');
+                        },
+                        onSuccess: function () { resolve(t.video_id); }
+                    }).start();
+                });
+            }).then(function (id) {
+                hid.value = id; bar.style.width = '100%';
+                say('Video uploaded. It may take a minute to process after you save.', 'text-success');
+            }).catch(function (e) {
+                file.value = ''; hid.value = ''; wrap.classList.add('d-none');
+                say((e && e.message) ? e.message : 'Upload failed. Check your connection and try again.', 'text-danger');
+            }).finally(function () { busy = false; file.disabled = false; });
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (busy) { e.preventDefault(); window.showToast && showToast('Wait for the video upload to finish first.', 'warning'); }
+        });
+    });
+
+    // ---- Preview modal ----
+    var modalEl = document.getElementById('videoPreviewModal'), box = document.getElementById('videoPreviewBox');
+    document.querySelectorAll('[data-video-preview]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            box.innerHTML = '';
+            var el;
+            if (btn.dataset.videoFile) { el = document.createElement('video'); el.controls = true; el.src = btn.dataset.videoPreview; }
+            else { el = document.createElement('iframe'); el.src = btn.dataset.videoPreview; el.allow = 'autoplay; fullscreen; picture-in-picture'; el.allowFullscreen = true; }
+            box.appendChild(el);
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+    });
+    modalEl.addEventListener('hidden.bs.modal', function () { box.innerHTML = ''; });
+})();
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. تأكيد الحذف للمنتجات
-    document.querySelectorAll('.delete-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const productName = this.getAttribute('data-product-name') || 'هذا المنتج';
-            if (!confirm(`هل أنت متأكد من حذف "${productName}" نهائياً مع كافة صوره وبياناته؟ لا يمكن التراجع عن هذه الخطوة.`)) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    // تأكيد حذف صورة من المعرض
-    document.querySelectorAll('.delete-image-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!confirm('هل تريد حذف هذه الصورة من المعرض؟')) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    // إيقاف الفيديو تلقائياً عند إغلاق المودال
-    document.querySelectorAll('.video-modal').forEach(modal => {
-        modal.addEventListener('hidden.bs.modal', function () {
-            const video = this.querySelector('video');
-            if (video) {
-                video.pause();
-                video.currentTime = 0;
-            }
-        });
-    });
-
-    // 2. التحكم في ظهور سكشن المتغيرات للإضافة
+    // 1. التحكم في ظهور سكشن المتغيرات للإضافة
     const hasVariantsCheck = document.getElementById('hasVariantsCheck');
     const variantsSection = document.getElementById('variantsSection');
     
@@ -589,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function toggleRemoveButtons() {
         const rows = document.querySelectorAll('.variant-row');
-        rows.forEach((row) => {
+        rows.forEach((row, idx) => {
             const btn = row.querySelector('.remove-variant');
             if (btn) {
                 btn.style.display = rows.length > 1 ? 'block' : 'none';
@@ -597,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. التحكم في مودالات التعديل (إظهار/إخفاء وإضافة صفوف مقاسات جديدة لكل منتج)
+    // 2. التحكم في مودالات التعديل (إظهار/إخفاء وإضافة صفوف مقاسات جديدة لكل منتج)
     document.querySelectorAll('.edit-has-variants-check').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const productId = this.getAttribute('data-product-id');

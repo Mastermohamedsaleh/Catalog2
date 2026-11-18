@@ -10,9 +10,7 @@ final class Money
 {
     public static function toCents(string|int|float $amount): int
     {
-        // تنظيف الرقم العشري أولاً لمنع أي بقايا لـ floating-point inaccuracies (مثل .99999 أو .00001)
-        $cleanAmount = number_format((float) $amount, 2, '.', '');
-        return (int) round(((float) $cleanAmount) * 100);
+        return (int) round(((float) $amount) * 100);
     }
 
     public static function fromCents(int $cents): string
@@ -23,9 +21,6 @@ final class Money
     /** (selling - cost) * qty, as a 2-decimal string. */
     public static function profit(string|int|float $selling, string|int|float $cost, int $qty): string
     {
-        $sellingCents = self::toCents($selling);
-        $costCents = self::toCents($cost);
-
-        return self::fromCents(($sellingCents - $costCents) * $qty);
+        return self::fromCents((self::toCents($selling) - self::toCents($cost)) * $qty);
     }
 }

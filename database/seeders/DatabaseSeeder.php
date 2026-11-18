@@ -70,18 +70,20 @@ class DatabaseSeeder extends Seeder
         $subCategories = Category::whereNotNull('parent_id')->get();
         $targetCategories = $subCategories->count() > 0 ? $subCategories : Category::all();
 
-        // 4. إنشاء 500 منتج بأسعار منطقية وثابتة
+        // 4. إنشاء 500 منتج مع مقاسات متطابقة تماماً في المخزون
         $allProducts = [];
         
         for ($p = 1; $p <= 500; $p++) {
             $category = $targetCategories->random();
-            $price = rand(100, 900); // أسعار منطقية جداً (من 100 لـ 900 جنيه)
+            $price = rand(100, 2000);
             
+            // توليد SKU فريد واحترافي لكل منتج
             $sku = 'PRD-' . strtoupper(Str::random(6));
             while (Product::where('sku', $sku)->exists()) {
                 $sku = 'PRD-' . strtoupper(Str::random(6));
             }
             
+            // إنشاء المنتج مبدئياً بمخزون 0
             $product = Product::create([
                 'category_id' => $category->id,
                 'name' => "Product Item {$p}",
@@ -89,7 +91,7 @@ class DatabaseSeeder extends Seeder
                 'slug' => "product-item-{$p}-" . Str::random(5),
                 'description' => "Detailed specifications and high quality description for product {$p}.",
                 'price' => $price,
-                'stock' => 0,
+                'stock' => 0, // سيتم تحديثه بناءً على مجموع المقاسات
                 'main_image' => 'https://picsum.photos/seed/prod' . $p . '/600/600',
                 'gallery_images' => json_encode([
                     'https://picsum.photos/seed/prod' . $p . '_1/600/600',
@@ -99,6 +101,7 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]);
 
+            // إضافة مقاسات وألوان (Variants) وحساب مجموع المخزون الحقيقي بدقة
             $sizes = ['S', 'M', 'L', 'XL', 'XXL'];
             $colors = ['Red', 'Blue', 'Black', 'White'];
             
@@ -117,15 +120,17 @@ class DatabaseSeeder extends Seeder
                     'size' => $size,
                     'color' => $colors[array_rand($colors)],
                     'stock' => $variantStock,
-                    'price_modifier' => rand(0, 30), // زيادة مقاس بسيطة ومنطقية
+                    'price_modifier' => rand(0, 50),
                 ]);
             }
 
+            // تحديث مخزون المنتج الأساسي ليساوي مجموع مخزون المقاسات تماماً
             $product->update(['stock' => $totalVariantStock]);
+
             $allProducts[] = $product;
         }
 
-        // 5. إنشاء 90 أوردر بحساب التكلفة السليمة والمطابقة لـ OrderController
+        // 5. إنشاء 90 أوردر بحالات مختلفة وتوزيعها على التجار
         $statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
         $cancellationReasons = [
             'العميل لم يرد على الاتصالات وتم إلغاء الطلب.',
@@ -139,15 +144,15 @@ class DatabaseSeeder extends Seeder
             $merchant = $merchants[array_rand($merchants)];
             $product = $allProducts[array_rand($allProducts)];
             
+            // جلب عشوائي لأحد مقاسات المنتج لو لديه مقاسات
             $variant = $product->variants()->inRandomOrder()->first();
             
             $status = $statuses[array_rand($statuses)];
             $qty = rand(1, 3);
+            $sellingPrice = $product->price + rand(50, 300);
             
-            // حساب التكلفة الصحيحة تماماً كما تنفذها في الـ Controller
-            $cost = $product->price + ($variant ? $variant->price_modifier : 0);
-            $sellingPrice = $cost + rand(50, 200); // سعر البيع أعلى من التكلفة حتماً
-            $profit = ($sellingPrice - $cost) * $qty;
+            // تصحيح معادلة الأرباح بالرمز الصحيح (-)
+            $profit = ($sellingPrice - $product->price) * $qty;
 
             $cancellationReason = null;
             if (in_array($status, ['cancelled', 'returned'])) {
@@ -159,9 +164,9 @@ class DatabaseSeeder extends Seeder
                 'product_id' => $product->id,
                 'product_variant_id' => $variant ? $variant->id : null,
                 'customer_name' => "Customer Test {$o}",
-                'customer_phone' => '01' . rand(100000000, 999999999),
-                'customer_address' => 'Cairo, Egypt - Street ' . $o,
-                'product_price' => $cost,
+                'customer_phone' => '050' . rand(1000000, 9999999),
+                'customer_address' => 'Dubai, UAE - Street ' . $o,
+                'product_price' => $product->price,
                 'selling_price' => $sellingPrice,
                 'profit' => $profit,
                 'stock' => $qty,
@@ -171,7 +176,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 6. تعبئة جداول المحافظ (Wallets) والمعاملات المالية تلقائياً
+        // 6. تعبئة جداول المحافظ (Wallets) والمعاملات المالية (WalletTransactions) تلقائياً للأوردرات المسلمة
         $deliveredOrders = Order::where('status', 'delivered')->get()->groupBy('user_id');
 
         foreach ($deliveredOrders as $userId => $orders) {

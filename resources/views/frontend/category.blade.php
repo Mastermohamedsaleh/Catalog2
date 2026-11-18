@@ -57,16 +57,13 @@
         <h1 class="h2 fw-bold mb-1">{{ $category->name }}</h1>
         <p class="text-muted mb-0">Explore items in this category</p>
     </div>
-    
-    <!-- نموذج البحث المحدث ليعمل عبر السيرفر (Server-side) -->
-    @if($category->children->count() == 0)
-    <form action="{{ route('shop.category', $category->slug) }}" method="GET" class="d-flex gap-2">
-      <div class="input-icon flex-grow-1 position-relative">
-          <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-          <input type="search" name="q" value="{{ request('q') }}" class="form-control ps-5" placeholder="Search products…">
+    @if($category->children->count() == 0 && $products->count() > 0)
+    <div class="d-flex gap-2">
+      <div class="input-icon flex-grow-1">
+          <i class="bi bi-search"></i>
+          <input type="search" class="form-control" placeholder="Search products…" data-filter="#grid">
       </div>
-      <button type="submit" class="btn btn-outline-primary">بحث</button>
-    </form>
+    </div>
     @endif
   </header>
 
@@ -122,7 +119,7 @@
                               <span class="badge badge-soft-primary mb-2">{{ $category->name }}</span>
                               <h2 class="h6 fw-bold mb-1 text-dark">{{ $p->name }}</h2>
                               <p class="small text-muted mb-2 text-truncate">{{ $p->description ?? 'No description available.' }}</p>
-                              <div class="price fw-bold text-primary">{{ $p->price }} EGP</div>
+                              <div class="price fw-bold text-primary">{{ $p->price }} {{ config('shop.currency') }}</div>
                           </div>
                       </a>
                   </div>
@@ -149,7 +146,7 @@
     <div class="row g-4 mb-4">
       <div class="col-lg-4"><div class="fs-5 fw-bold text-white mb-2"><i class="bi bi-grid-fill me-2"></i>CatalogPro</div><p class="small mb-0">Quality products, honest prices and real support since 2015.</p></div>
       <div class="col-6 col-lg-2"><div class="text-white fw-semibold mb-2">Links</div><ul class="list-unstyled small mb-0"><li><a class="text-reset" href="{{ url('/') }}#about">About us</a></li><li><a class="text-reset" href="{{ url('/') }}#services">What we offer</a></li><li><a class="text-reset" href="{{ route('shop.categories.index') }}">Categories</a></li><li><a class="text-reset" href="{{ url('/') }}#contact">Contact</a></li></ul></div>
-      <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2">EN</i>+20 100 000 0000</li><li><i class="bi bi-envelope me-2"></i>info@catalogpro.com</li><li><i class="bi bi-geo-alt me-2"></i>Nasr City, Cairo</li></ul></div>
+      <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2"></i>{{ \App\Support\Phone::display(config('shop.phone')) }}</li><li><i class="bi bi-envelope me-2"></i>{{ config('shop.email') }}</li><li><i class="bi bi-geo-alt me-2"></i>{{ config('shop.city') }}</li></ul></div>
       <div class="col-lg-3"><div class="text-white fw-semibold mb-2">Follow us</div><div class="d-flex gap-3 fs-5"><a class="text-reset" href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a><a class="text-reset" href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a><a class="text-reset" href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a></div></div>
     </div>
   </div>
@@ -157,17 +154,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.querySelector('input[name="q"]');
-    if (searchInput) {
-        // العودة للنتائج الكاملة تلقائياً عند مسح البحث بزر الـ "X"
-        searchInput.addEventListener('search', function () {
-            if (this.value === '') {
-                this.form.submit();
-            }
-        });
-    }
-});
+(function () {
+  'use strict';
+  document.querySelectorAll('[data-filter]').forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      var q = inp.value.toLowerCase();
+      var s = inp.dataset.filter;
+      var items = document.querySelectorAll(s + ' > .product-item');
+
+      items.forEach(function (el) {
+        var match = el.textContent.toLowerCase().indexOf(q) > -1;
+        el.hidden = !match;
+      });
+    });
+  });
+})();
 </script>
 </body>
 </html>

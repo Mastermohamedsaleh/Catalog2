@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
+use App\Services\BunnyStreamService;
 use App\Services\MediaService;
 use App\Services\StockService;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -22,6 +23,7 @@ class ProductController extends Controller
     public function __construct(
         protected MediaService $mediaService,
         protected StockService $stockService,
+        protected BunnyStreamService $bunny,
     ) {
     }
 
@@ -63,8 +65,9 @@ class ProductController extends Controller
             'main_image'  => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:max_width=6000,max_height=6000',
             'images'      => 'nullable|array|max:10',
             'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:max_width=6000,max_height=6000',
-            'video_url'   => 'nullable|mimes:mp4,mov,avi,wmv|max:10240',
-            'description' => 'nullable|string|max:5000',
+            'video_id'    => ['nullable', 'regex:/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'],
+            'remove_video' => 'nullable|boolean',
+            'description' => 'nullable|string',
             'variants'                  => 'nullable|array|max:100',
             'variants.*.size'           => 'nullable|string|max:50',
             'variants.*.color'          => 'nullable|string|max:50',
@@ -77,47 +80,15 @@ class ProductController extends Controller
     private function messages(): array
     {
         return [
-            'category_id.required'       => 'يرجى اختيار القسم التابع له المنتج.',
-            'category_id.exists'         => 'القسم المختار غير موجود.',
-            'name.required'              => 'اسم المنتج مطلوب.',
-            'name.string'                => 'اسم المنتج يجب أن يكون نصاً صحيحاً.',
-            'name.max'                   => 'اسم المنتج يجب ألا يتجاوز 255 حرفاً.',
-            'name.unique'                => 'عذراً، هذا الاسم مسجل مسبقاً لمنتج آخر. يرجى اختيار اسم فريد.',
-            'sku.max'                    => 'كود المنتج (SKU) يجب ألا يتجاوز 100 حرف.',
-            'sku.unique'                 => 'كود المنتج (SKU) مستخدم من قبل، يرجى اختيار كود فريد.',
-            'price.required'             => 'سعر الجملة مطلوب.',
-            'price.numeric'              => 'سعر الجملة يجب أن يكون رقماً.',
-            'price.min'                  => 'سعر الجملة لا يمكن أن يكون أقل من 0.',
-            'price.max'                  => 'سعر الجملة تخطى الحد الأقصى المسموح به.',
-            'stock.required'             => 'كمية المخزون الأساسي مطلوبة.',
-            'stock.integer'              => 'كمية المخزون الأساسي يجب أن تكون رقماً صحيحاً.',
-            'stock.min'                  => 'كمية المخزون الأساسي لا يمكن أن تكون أقل من 0.',
-            'stock.max'                  => 'كمية المخزون تخطت الحد الأقصى المسموح به.',
-            'main_image.image'           => 'الملف المرفوع كصورة رئيسية يجب أن يكون صورة صحيحة.',
-            'main_image.mimes'           => 'صيغة الصورة الرئيسية يجب أن تكون: jpeg, png, jpg, أو webp.',
-            'main_image.max'             => 'حجم الصورة الرئيسية يجب ألا يتجاوز 2 ميجابايت.',
-            'main_image.dimensions'      => 'أبعاد الصورة الرئيسية كبيرة جداً (الحد الأقصى 6000×6000 بكسل).',
-            'images.array'               => 'صيغة معرض الصور غير صحيحة.',
-            'images.max'                 => 'الحد الأقصى لصور المعرض هو 10 صور فقط.',
-            'images.*.image'             => 'جميع الملفات المرفوعة في المعرض يجب أن تكون صوراً صحيحة.',
-            'images.*.mimes'             => 'صيغة صور المعرض يجب أن تكون: jpeg, png, jpg, أو webp.',
-            'images.*.max'               => 'حجم كل صورة في المعرض يجب ألا يتجاوز 2 ميجابايت.',
-            'images.*.dimensions'        => 'أبعاد إحدى صور المعرض كبيرة جداً (الحد الأقصى 6000×6000 بكسل).',
-            'video_url.mimes'            => 'صيغة الفيديو يجب أن تكون: mp4, mov, avi, أو wmv.',
-            'video_url.max'              => 'حجم الفيديو يجب ألا يتجاوز 10 ميجابايت.',
-            'description.max'            => 'وصف المنتج يجب ألا يتجاوز 5000 حرف.',
-            'variants.array'             => 'بيانات المقاسات والألوان غير صحيحة.',
-            'variants.max'               => 'الحد الأقصى للمقاسات والألوان هو 100 عنصر.',
-            'variants.*.size.max'        => 'اسم المقاس يجب ألا يتجاوز 50 حرفاً.',
-            'variants.*.color.max'       => 'اسم اللون يجب ألا يتجاوز 50 حرفاً.',
-            'variants.*.stock.integer'   => 'مخزون المقاس/اللون يجب أن يكون رقماً صحيحاً.',
-            'variants.*.stock.min'       => 'مخزون المقاس/اللون لا يمكن أن يكون أقل من 0.',
-            'variants.*.price_modifier.numeric' => 'السعر الإضافي للمقاس/اللون يجب أن يكون رقماً.',
-            'variants.*.price_modifier.min'     => 'السعر الإضافي لا يمكن أن يكون أقل من 0.',
+            'name.unique'          => 'عذراً، هذا الاسم مسجل مسبقاً لمنتج آخر. يرجى اختيار اسم فريد.',
+            'sku.unique'           => 'كود المنتج (SKU) مستخدم من قبل، يرجى اختيار كود فريد.',
+            'category_id.required' => 'يرجى اختيار القسم التابع له المنتج.',
+            'price.required'       => 'سعر الجملة مطلوب.',
+            'stock.required'       => 'كمية المخزون مطلوبة.',
         ];
     }
 
-    /** Variant rows with a size or a color, one per (size, color) pair, validated against parent stock. */
+    /** Variant rows with a size or a color, one per (size, color) pair. */
     private function submittedVariants(Request $request): array
     {
         if (! $request->has('has_variants')) {
@@ -133,9 +104,7 @@ class ProductController extends Controller
             }
             $key = mb_strtolower($size . '|' . $color);
             if (isset($rows[$key])) {
-                throw ValidationException::withMessages([
-                    'variants' => "المقاس واللون مكررين: {$size} {$color}"
-                ]);
+                throw ValidationException::withMessages(['variants' => "المقاس واللون مكررين: {$size} {$color}"]);
             }
             $rows[$key] = [
                 'size'           => $size,
@@ -144,22 +113,6 @@ class ProductController extends Controller
                 'original_stock' => isset($v['original_stock']) && $v['original_stock'] !== '' ? (int) $v['original_stock'] : null,
                 'price_modifier' => $v['price_modifier'] ?? 0,
             ];
-        }
-
-        if (empty($rows)) {
-            throw ValidationException::withMessages([
-                'variants' => 'لقد قمت بتفعيل خيار المقاسات والألوان، يرجى إدخال مقاس أو لون واحد على الأقل.',
-            ]);
-        }
-
-        // التحقق من تطابق مجموع مخزون المتغيرات مع مخزون المنتج الأساسي
-        $parentStock = (int) $request->input('stock', 0);
-        $variantsSum = array_sum(array_column($rows, 'stock'));
-
-        if ($variantsSum !== $parentStock) {
-            throw ValidationException::withMessages([
-                'stock' => "خطأ في توزيع المخزون: مخزون المنتج الأساسي ({$parentStock}) لا يطابق مجموع مخزون المقاسات والألوان ({$variantsSum}). يجب أن يتساوى المجموع مع المخزون الأساسي.",
-            ]);
         }
 
         return $rows;
@@ -197,9 +150,7 @@ class ProductController extends Controller
             if ($request->hasFile('main_image')) {
                 $uploaded[] = $imagePath = $this->mediaService->uploadAndOptimizeImage($request->file('main_image'), 'products/images');
             }
-            if ($request->hasFile('video_url')) {
-                $uploaded[] = $videoPath = $this->mediaService->uploadFile($request->file('video_url'), 'products/videos');
-            }
+            $videoPath = $request->filled('video_id') ? $request->input('video_id') : null; // already uploaded to Bunny by the browser
             $galleryPaths = [];
             foreach ((array) $request->file('images', []) as $file) {
                 $uploaded[] = $galleryPaths[] = $this->mediaService->uploadAndOptimizeImage($file, 'products/gallery');
@@ -212,7 +163,7 @@ class ProductController extends Controller
                     'sku'         => $this->uniqueSku($request->filled('sku') ? $request->sku : null),
                     'slug'        => $this->uniqueSlug($request->name),
                     'price'       => $request->price,
-                    'stock'       => (int) $request->stock,
+                    'stock'       => $variants ? array_sum(array_column($variants, 'stock')) : (int) $request->stock,
                     'main_image'  => $imagePath,
                     'video_url'   => $videoPath,
                     'description' => $request->description,
@@ -252,21 +203,21 @@ class ProductController extends Controller
 
         $uploaded = [];  // new files: removed if the update fails
         $toDelete = [];  // old files: removed only AFTER the update committed
+        $oldVideo = null;
 
         try {
             $newMain = $newVideo = null;
             if ($request->hasFile('main_image')) {
                 $uploaded[] = $newMain = $this->mediaService->uploadAndOptimizeImage($request->file('main_image'), 'products/images');
             }
-            if ($request->hasFile('video_url')) {
-                $uploaded[] = $newVideo = $this->mediaService->uploadFile($request->file('video_url'), 'products/videos');
-            }
+            $newVideo = $request->filled('video_id') ? $request->input('video_id') : null;
+            $removeVideo = ! $newVideo && $request->boolean('remove_video');
             $galleryPaths = [];
             foreach ((array) $request->file('images', []) as $file) {
                 $uploaded[] = $galleryPaths[] = $this->mediaService->uploadAndOptimizeImage($file, 'products/gallery');
             }
 
-            DB::transaction(function () use ($request, $product, $variants, $newMain, $newVideo, $galleryPaths, &$toDelete) {
+            DB::transaction(function () use ($request, $product, $variants, $newMain, $newVideo, $removeVideo, $galleryPaths, &$toDelete, &$oldVideo) {
                 $locked = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
                 $existing = ProductVariant::where('product_id', $locked->id)->lockForUpdate()->get();
 
@@ -274,7 +225,7 @@ class ProductController extends Controller
                 $keep = collect($variants)->keys()->all();
                 foreach ($existing as $row) {
                     $key = mb_strtolower($row->size . '|' . $row->color);
-                    if (! in_array($key, $keep, true) && Order::where('product_variant_id', $row->id)->exists()) {
+                    if (! in_array($key, $keep, true) && Order::withTrashed()->where('product_variant_id', $row->id)->exists()) {
                         throw ValidationException::withMessages([
                             'variants' => "لا يمكن حذف المقاس ({$row->size} {$row->color}) لوجود أوردرات عليه. اجعل مخزونه 0 بدلاً من حذفه.",
                         ]);
@@ -282,7 +233,7 @@ class ProductController extends Controller
                 }
 
                 if ($newMain) { $toDelete[] = $locked->main_image; }
-                if ($newVideo) { $toDelete[] = $locked->video_url; }
+                if (($newVideo && $newVideo !== $locked->video_url) || $removeVideo) { $oldVideo = $locked->video_url; }
 
                 $locked->update([
                     'category_id' => $request->category_id,
@@ -291,7 +242,7 @@ class ProductController extends Controller
                     'slug'        => $this->uniqueSlug($request->name, $locked->id),
                     'price'       => $request->price,
                     'main_image'  => $newMain ?? $locked->main_image,
-                    'video_url'   => $newVideo ?? $locked->video_url,
+                    'video_url'   => $newVideo ?? ($removeVideo ? null : $locked->video_url),
                     'description' => $request->description,
                     'is_active'   => $request->has('is_active'),
                 ]);
@@ -306,6 +257,7 @@ class ProductController extends Controller
                     foreach ($variants as $key => $v) {
                         $row = $byKey->get($key);
                         if ($row) {
+                            // Stock field untouched by the admin => keep the live stock (orders may have changed it).
                             $stock = ($v['original_stock'] !== null && $v['original_stock'] === $v['stock']) ? $row->stock : $v['stock'];
                             $row->update(['stock' => $stock, 'price_modifier' => $v['price_modifier']]);
                         } else {
@@ -324,6 +276,7 @@ class ProductController extends Controller
                 } else {
                     ProductVariant::where('product_id', $locked->id)->delete();
                     $original = $request->filled('original_stock') ? (int) $request->original_stock : null;
+                    // Unchanged stock field => keep live stock; changed => the admin set it explicitly.
                     if ($original === null || $original !== (int) $request->stock) {
                         $locked->update(['stock' => (int) $request->stock]);
                     }
@@ -342,17 +295,20 @@ class ProductController extends Controller
         }
 
         $this->cleanup($toDelete); // committed: now it is safe to drop the replaced files
+        $this->discardVideo($oldVideo);
 
         return redirect()->route('admin.products.index')->with('success', 'تم تحديث المنتج بنجاح!');
     }
 
     public function destroy(Product $product)
     {
-        if (Order::where('product_id', $product->id)->exists()) {
+        // Orders are financial records. Deleting a product with orders is refused (the foreign key also blocks it).
+        if (Order::withTrashed()->where('product_id', $product->id)->exists()) {
             return back()->with('error', 'لا يمكن حذف منتج عليه أوردرات. قم بإلغاء تفعيله بدلاً من حذفه.');
         }
 
-        $files = array_filter([$product->main_image, $product->video_url]);
+        $video = $product->video_url;
+        $files = array_filter([$product->main_image]);
         $files = array_merge($files, $product->images()->pluck('image_path')->all());
 
         try {
@@ -367,6 +323,7 @@ class ProductController extends Controller
         }
 
         $this->cleanup($files);
+        $this->discardVideo($video);
 
         return redirect()->route('admin.products.index')->with('success', 'تم حذف المنتج وملفاته ومتغيراته بنجاح.');
     }
@@ -378,6 +335,16 @@ class ProductController extends Controller
         $this->mediaService->deleteFile($path);
 
         return back()->with('success', 'تم حذف الصورة من المعرض بنجاح.');
+    }
+
+    /** A video is either a Bunny id (delete remotely) or a legacy local file (delete from disk). */
+    private function discardVideo(?string $video): void
+    {
+        if (! $video) {
+            return;
+        }
+
+        $this->bunny->isVideoId($video) ? $this->bunny->delete($video) : $this->mediaService->deleteFile($video);
     }
 
     private function cleanup(array $paths): void
