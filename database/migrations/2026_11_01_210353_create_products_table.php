@@ -25,7 +25,8 @@ return new class extends Migration
     $table->json('gallery_images')->nullable();
     $table->string('downloadable_file')->nullable();
     $table->string('video_url')->nullable();
-    
+  $table->string('video_download_url', 500)->nullable();
+
     $table->boolean('is_active')->default(true);
     $table->timestamps();
         });

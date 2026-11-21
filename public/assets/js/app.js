@@ -11,7 +11,7 @@
     success: { icon: 'bi-check-circle-fill', color: '#16a34a' },
     error:   { icon: 'bi-x-circle-fill',     color: '#dc2626' },
     warning: { icon: 'bi-exclamation-triangle-fill', color: '#d97706' },
-    info:    { icon: 'bi-info-circle-fill',  color: '#4f46e5' }
+    info:    { icon: 'bi-info-circle-fill',  color: '#0a1f5c' }
   };
   window.showToast = function (message, type, ms) {
     type = TYPES[type] ? type : 'success';
@@ -32,8 +32,8 @@
 
 
   /* ---------- Placeholder artwork: SVG data URIs (no network, no relative paths) ---------- */
-  var PAL = { g1:['#6366f1','#8b5cf6'], g2:['#0ea5e9','#2563eb'], g3:['#10b981','#059669'],
-              g4:['#f59e0b','#ea580c'], g5:['#ec4899','#db2777'], g6:['#14b8a6','#0891b2'] };
+  var PAL = { g1:['#0a1f5c','#1b3a9a'], g2:['#ff7a00','#ffb000'], g3:['#06133f','#0a1f5c'],
+              g4:['#ffb000','#f26a00'], g5:['#1b3a9a','#2a56d0'], g6:['#d95a00','#f26a00'] };
   function artUri(k, n) {
     var c = PAL[k] || PAL.g1, r = (n * 37) % 60;
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">' +

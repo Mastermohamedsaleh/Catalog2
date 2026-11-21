@@ -111,8 +111,7 @@ class FrontendController extends Controller
                 ->findOrFail($id);
         });
 
-        // تنبيه: رابط الفيديو (video_embed_url) بيتحسب هنا وقت العرض مش وقت التخزين، فالتوكن دايماً طازة.
-        // ما تكاشيش الصفحة كـ HTML جاهز، لأن توكن الفيديو بينتهي.
+        // رابط الفيديو (video_embed_url) بيتحسب من لينك يوتيوب المخزّن وقت العرض، ومفيهوش توكن بينتهي.
         return view('frontend.product-details', compact('product'));
     }
 }

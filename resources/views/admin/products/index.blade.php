@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Products · CatalogPro Admin')
+@section('title', 'Products · AksSap Admin')
 @section('page_title', 'Store Products')
 
 @section('content')
@@ -226,10 +226,9 @@
 
         <!-- الفيديو -->
         <div class="mb-3">
-          <label class="form-label small fw-semibold">Product Video (MP4, MOV)</label>
+          <label class="form-label small fw-semibold">Product Video (YouTube link)</label>
           @include('admin.products._video-uploader')
-          <div class="form-text small text-muted">فيديو تسويقي للمنتج يستطيع المسوقون مشاهدته وتحميله.</div>
-        </div>
+                  </div>
 
         <!-- قسم المتغيرات (المقاسات والألوان) -->
         <div class="card bg-light border-0 p-3 mb-3">
@@ -451,64 +450,8 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js"></script>
 <script>
 (function () {
-    // ---- Direct upload to the video service (file never touches this server) ----
-    var csrf = document.querySelector('meta[name="csrf-token"]').content;
-
-    document.querySelectorAll('.video-uploader').forEach(function (box) {
-        var file = box.querySelector('.video-file'), hid = box.querySelector('.video-id'),
-            wrap = box.querySelector('.progress'), bar = box.querySelector('.progress-bar'),
-            status = box.querySelector('.video-status'), form = box.closest('form'), busy = false;
-
-        function say(msg, cls) { status.className = 'form-text small video-status ' + (cls || ''); status.textContent = msg; }
-
-        file.addEventListener('change', function () {
-            var f = file.files[0];
-            hid.value = '';
-            if (!f) { say(''); return; }
-            if (f.type && f.type.indexOf('video/') !== 0) { file.value = ''; say('Please choose a video file.', 'text-danger'); return; }
-            if (f.size > 2 * 1024 * 1024 * 1024) { file.value = ''; say('Video is larger than 2 GB.', 'text-danger'); return; }
-
-            busy = true; file.disabled = true; wrap.classList.remove('d-none'); bar.style.width = '0%';
-            say('Preparing upload…');
-
-            fetch(box.dataset.prepareUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
-                body: JSON.stringify({ title: f.name })
-            }).then(function (r) {
-                return r.json().then(function (j) { if (!r.ok) throw new Error(j.message || 'Could not start the upload.'); return j; });
-            }).then(function (t) {
-                return new Promise(function (resolve, reject) {
-                    new tus.Upload(f, {
-                        endpoint: t.endpoint,
-                        retryDelays: [0, 3000, 5000, 10000, 20000, 60000],
-                        headers: t.headers,
-                        metadata: { filetype: f.type, title: f.name },
-                        onError: reject,
-                        onProgress: function (sent, total) {
-                            var pct = Math.round(sent / total * 100);
-                            bar.style.width = pct + '%'; say('Uploading… ' + pct + '%');
-                        },
-                        onSuccess: function () { resolve(t.video_id); }
-                    }).start();
-                });
-            }).then(function (id) {
-                hid.value = id; bar.style.width = '100%';
-                say('Video uploaded. It may take a minute to process after you save.', 'text-success');
-            }).catch(function (e) {
-                file.value = ''; hid.value = ''; wrap.classList.add('d-none');
-                say((e && e.message) ? e.message : 'Upload failed. Check your connection and try again.', 'text-danger');
-            }).finally(function () { busy = false; file.disabled = false; });
-        });
-
-        form.addEventListener('submit', function (e) {
-            if (busy) { e.preventDefault(); window.showToast && showToast('Wait for the video upload to finish first.', 'warning'); }
-        });
-    });
-
     // ---- Preview modal ----
     var modalEl = document.getElementById('videoPreviewModal'), box = document.getElementById('videoPreviewBox');
     document.querySelectorAll('[data-video-preview]').forEach(function (btn) {

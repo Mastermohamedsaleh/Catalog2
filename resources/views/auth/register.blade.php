@@ -3,18 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Create account · CatalogPro</title>
+  <title>Create account · AksSap</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
+  <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <style>
     :root {
-      --brand: #4f46e5;
-      --brand-dark: #4338ca;
-      --brand-soft: #eef2ff;
+      --brand: #f26a00;
+      --brand-dark: #d95a00;
+      --brand-soft: #fff1e6;
+  --navy: #0a1f5c;
+  --navy-deep: #050f35;
+  --amber: #ffb000;
       --ink: #0f172a;
       --muted: #64748b;
       --canvas: #f4f6fb;
-      --sidebar: #0f172a;
+      --sidebar: #07143f;
       --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .06);
       --shadow-md: 0 8px 24px rgba(15, 23, 42, .08);
       --bs-primary: var(--brand);
@@ -24,12 +30,12 @@
     .btn-primary { background-color: var(--brand); border-color: var(--brand); }
     .btn-primary:hover { background-color: var(--brand-dark); border-color: var(--brand-dark); }
     .auth-wrap { min-height: 100vh; }
-    .auth-hero { background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 60%, #7c3aed 100%); color: #fff; position: relative; overflow: hidden; }
+    .auth-hero { background: linear-gradient(135deg, #050f35 0%, #0a1f5c 60%, #17389a 100%); color: #fff; position: relative; overflow: hidden; }
     .auth-card { max-width: 420px; width: 100%; }
     .input-icon { position: relative; }
     .input-icon > .bi { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
     .input-icon .form-control { padding-left: 2.6rem; border-radius: .65rem; padding-top: .65rem; padding-bottom: .65rem; border-color: #e2e8f0; }
-    .input-icon .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 .22rem rgba(79, 70, 229, .15); }
+    .input-icon .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 .22rem rgba(242, 106, 0, .15); }
   </style>
 </head>
 <body>
@@ -38,16 +44,16 @@
   <!-- Left: Brand Hero Panel -->
   <section class="col-lg-6 d-none d-lg-flex auth-hero align-items-center p-5">
     <div class="position-relative" style="z-index:1;max-width:460px">
-      <div class="fs-3 fw-bold mb-4"><i class="bi bi-grid-fill me-2"></i>CatalogPro</div>
-      <h1 class="display-6 fw-bold mb-3">Start building your catalog today.</h1>
-      <p class="opacity-75 mb-0">Create your account and publish your first category and product in minutes.</p>
+      <div class="fs-3 fw-bold mb-4"><img src="{{ asset('assets/img/logo.png') }}" alt="AksSap logo" class="brand-logo"><span>Aks<span class="brand-accent">Sap</span></span></div>
+      <h1 class="display-6 fw-bold mb-3">Start your marketing business today.</h1>
+      <p class="opacity-75 mb-0">Create your account, meet your supervisor, and place your first order.</p>
     </div>
   </section>
 
   <!-- Right: Register Form -->
   <section class="col-lg-6 d-flex align-items-center justify-content-center p-4 bg-white">
     <div class="auth-card">
-      <div class="d-lg-none fs-4 fw-bold text-primary mb-4"><i class="bi bi-grid-fill me-2"></i>CatalogPro</div>
+      <div class="d-lg-none fs-4 fw-bold brand-ink mb-4"><img src="{{ asset('assets/img/logo.png') }}" alt="AksSap logo" class="brand-logo"><span>Aks<span class="brand-accent">Sap</span></span></div>
       <h2 class="fw-bold mb-1">Create account</h2>
       <p class="text-muted mb-4">It only takes a minute.</p>
 

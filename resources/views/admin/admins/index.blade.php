@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Admins Management · CatalogPro Admin')
+@section('title', 'Admins Management · AksSap Admin')
 @section('page_title', 'Admins Management')
 
 @section('content')
@@ -165,7 +165,7 @@
         </div>
         <div class="mb-3">
           <label class="form-label small fw-semibold">Email Address <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="admin@catalogpro.com" required>
+          <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="admin@example.com" required>
         </div>
         <div class="mb-3">
           <label class="form-label small fw-semibold">Password <span class="text-danger">*</span></label>

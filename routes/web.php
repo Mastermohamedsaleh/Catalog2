@@ -29,17 +29,15 @@ Route::get('/dashboard', fn () => auth()->user()->isAdmin()
 
 // مسارات الأدمن المحمية (Admin Dashboard & Shell)
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
-
+    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'admin'])->name('profile');
-
     // اسم الراوت اللي صفحة بروفايل الأدمن القديمة بتستدعيه: admin.profile.updatePassword
     // بيستخدم نفس كنترولر تغيير الباسورد الأساسي (فيه التحقق من الباسورد الحالي وتأكيد الباسورد الجديد).
-   Route::match(['put', 'post'], '/profile/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])
+    // بيقبل PUT و POST عشان الفورم يشتغل سواء فيه @method('PUT') أو من غيره.
+    Route::match(['put', 'post'], '/profile/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])
         ->middleware('throttle:6,1')->name('profile.updatePassword');
-
-    Route::post('/videos/prepare', [\App\Http\Controllers\Admin\VideoUploadController::class, 'prepare'])->middleware('throttle:30,1')->name('videos.prepare');
-
+    
     // استثنينا الـ show من الـ resource عشان نعمله بشكل صريح ومضبوط بالـ admin prefix
     Route::resource('categories', CategoryController::class)
         ->except(['create', 'show', 'edit'])

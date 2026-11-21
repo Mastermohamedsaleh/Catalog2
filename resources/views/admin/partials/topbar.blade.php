@@ -15,7 +15,7 @@
             </span>
         </a>
         <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
-            <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person me-2"></i>Profile</a></li>
+            <li><a class="dropdown-item" href="{{ route('admin.profile') }}"><i class="bi bi-person me-2"></i>Profile</a></li>
             <li><hr class="dropdown-divider"></li>
             <li>
                 <form method="POST" action="{{ route('logout') }}">

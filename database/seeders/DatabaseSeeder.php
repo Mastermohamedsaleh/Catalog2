@@ -97,7 +97,7 @@ class DatabaseSeeder extends Seeder
                     'https://picsum.photos/seed/prod' . $p . '_1/600/600',
                     'https://picsum.photos/seed/prod' . $p . '_2/600/600',
                 ]),
-                'video_url' => 'https://www.w3schools.com/html/mov_bbb.mp4',
+                'video_url' => null, // حط لينك يوتيوب حقيقي من لوحة الأدمن
                 'is_active' => true,
             ]);
 

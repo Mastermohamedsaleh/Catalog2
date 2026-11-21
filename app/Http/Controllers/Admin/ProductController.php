@@ -8,7 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
-use App\Services\BunnyStreamService;
+use App\Support\VideoLinks;
 use App\Services\MediaService;
 use App\Services\StockService;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -23,7 +23,6 @@ class ProductController extends Controller
     public function __construct(
         protected MediaService $mediaService,
         protected StockService $stockService,
-        protected BunnyStreamService $bunny,
     ) {
     }
 
@@ -65,7 +64,14 @@ class ProductController extends Controller
             'main_image'  => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:max_width=6000,max_height=6000',
             'images'      => 'nullable|array|max:10',
             'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:max_width=6000,max_height=6000',
-            'video_id'    => ['nullable', 'regex:/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'],
+            // لينك يوتيوب (Unlisted) للمشاهدة. أي لينك مش يوتيوب بيترفض عشان ميتحطش جوه iframe.
+            'video_url'   => ['nullable', 'string', 'max:255', function ($attr, $value, $fail) {
+                if (filled($value) && ! VideoLinks::youtubeId($value)) {
+                    $fail('لينك الفيديو لازم يكون لينك يوتيوب صحيح (youtube.com أو youtu.be).');
+                }
+            }],
+            // لينك التنزيل المنفصل (Google Drive / Dropbox ...). http/https بس.
+            'video_download_url' => ['nullable', 'url:http,https', 'max:500'],
             'remove_video' => 'nullable|boolean',
             'description' => 'nullable|string',
             'variants'                  => 'nullable|array|max:100',
@@ -150,7 +156,7 @@ class ProductController extends Controller
             if ($request->hasFile('main_image')) {
                 $uploaded[] = $imagePath = $this->mediaService->uploadAndOptimizeImage($request->file('main_image'), 'products/images');
             }
-            $videoPath = $request->filled('video_id') ? $request->input('video_id') : null; // already uploaded to Bunny by the browser
+            $videoPath = VideoLinks::normalizeYoutube($request->input('video_url')); // لينك يوتيوب موحّد، مفيش رفع ملفات
             $galleryPaths = [];
             foreach ((array) $request->file('images', []) as $file) {
                 $uploaded[] = $galleryPaths[] = $this->mediaService->uploadAndOptimizeImage($file, 'products/gallery');
@@ -166,6 +172,7 @@ class ProductController extends Controller
                     'stock'       => $variants ? array_sum(array_column($variants, 'stock')) : (int) $request->stock,
                     'main_image'  => $imagePath,
                     'video_url'   => $videoPath,
+                    'video_download_url' => $request->filled('video_download_url') ? trim($request->input('video_download_url')) : null,
                     'description' => $request->description,
                     'is_active'   => $request->has('is_active'),
                 ]);
@@ -210,7 +217,7 @@ class ProductController extends Controller
             if ($request->hasFile('main_image')) {
                 $uploaded[] = $newMain = $this->mediaService->uploadAndOptimizeImage($request->file('main_image'), 'products/images');
             }
-            $newVideo = $request->filled('video_id') ? $request->input('video_id') : null;
+            $newVideo = VideoLinks::normalizeYoutube($request->input('video_url'));
             $removeVideo = ! $newVideo && $request->boolean('remove_video');
             $galleryPaths = [];
             foreach ((array) $request->file('images', []) as $file) {
@@ -243,6 +250,11 @@ class ProductController extends Controller
                     'price'       => $request->price,
                     'main_image'  => $newMain ?? $locked->main_image,
                     'video_url'   => $newVideo ?? ($removeVideo ? null : $locked->video_url),
+                    // لينك التنزيل: لو الحقل اتبعت (حتى فاضي) بنحفظه، ولو الفيديو اتشال بيتشال معاه.
+                    'video_download_url' => $removeVideo ? null
+                        : ($request->has('video_download_url')
+                            ? ($request->filled('video_download_url') ? trim($request->input('video_download_url')) : null)
+                            : $locked->video_download_url),
                     'description' => $request->description,
                     'is_active'   => $request->has('is_active'),
                 ]);
@@ -337,14 +349,14 @@ class ProductController extends Controller
         return back()->with('success', 'تم حذف الصورة من المعرض بنجاح.');
     }
 
-    /** A video is either a Bunny id (delete remotely) or a legacy local file (delete from disk). */
+    /** لينكات يوتيوب مفيهاش حاجة تتمسح. بنمسح بس الملفات القديمة اللي كانت على السيرفر. */
     private function discardVideo(?string $video): void
     {
-        if (! $video) {
+        if (! $video || VideoLinks::youtubeId($video) || ! str_contains($video, '/') || preg_match('~^https?://~i', $video)) {
             return;
         }
 
-        $this->bunny->isVideoId($video) ? $this->bunny->delete($video) : $this->mediaService->deleteFile($video);
+        $this->mediaService->deleteFile($video);
     }
 
     private function cleanup(array $paths): void

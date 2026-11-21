@@ -1,13 +1,14 @@
-{{-- Direct-to-Bunny uploader. The file never passes through this server; only the video id is submitted. --}}
+{{-- حقول الفيديو: لينك يوتيوب للمشاهدة + لينك تنزيل منفصل (اختياري). مفيش رفع ملفات على السيرفر. --}}
 @php
-    $bunnyReady = app(\App\Services\BunnyStreamService::class)->configured();
     $uid = 'vu' . ($product->id ?? 'new');
+    $hasVideo = !empty($product) && filled($product->video_url);
+    $currentYoutube = !empty($product) ? $product->video_watch_url : null;
 @endphp
-<div class="video-uploader" data-prepare-url="{{ route('admin.videos.prepare') }}">
-    @if(!empty($product) && $product->video_url)
+<div class="video-fields">
+    @if($hasVideo)
         <div class="d-flex align-items-center gap-2 mb-2 small">
-            @if($product->video_embed_url)
-                <span class="badge badge-soft-success"><i class="bi bi-cloud-check me-1"></i>Hosted on Bunny</span>
+            @if($currentYoutube)
+                <span class="badge badge-soft-success"><i class="bi bi-youtube me-1"></i>YouTube</span>
             @else
                 <span class="badge badge-soft-warning"><i class="bi bi-hdd me-1"></i>Old local file</span>
             @endif
@@ -18,18 +19,18 @@
         </div>
     @endif
 
-    <input type="file" class="form-control video-file" accept="video/mp4,video/quicktime,video/*" @disabled(! $bunnyReady)>
-    <input type="hidden" name="video_id" class="video-id" value="{{ old('video_id') }}">
-    @error('video_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+    <label class="form-label small text-muted mb-1" for="yt{{ $uid }}">YouTube link (Unlisted)</label>
+    <input type="url" class="form-control @error('video_url') is-invalid @enderror" id="yt{{ $uid }}" name="video_url"
+           value="{{ old('video_url', $currentYoutube) }}" placeholder="https://www.youtube.com/watch?v=xxxxxxxxxxx" maxlength="255">
+    @error('video_url')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
 
-    <div class="progress mt-2 d-none" style="height:8px"><div class="progress-bar" role="progressbar" style="width:0%"></div></div>
-    <div class="form-text small video-status">
-        @if(! $bunnyReady)
-            <span class="text-danger">Video hosting is not configured (set BUNNY_LIBRARY_ID and BUNNY_API_KEY in .env).</span>
-        @elseif(old('video_id'))
-            <span class="text-success">A video was already uploaded — it will be attached when you save.</span>
-        @else
-            MP4 / MOV. The upload goes straight to the video service and can resume if the connection drops. Keep this window open until it says "uploaded".
-        @endif
+    <label class="form-label small text-muted mb-1 mt-2" for="dl{{ $uid }}">Download link (optional)</label>
+    <input type="url" class="form-control @error('video_download_url') is-invalid @enderror" id="dl{{ $uid }}" name="video_download_url"
+           value="{{ old('video_download_url', $product->video_download_url ?? '') }}" placeholder="https://drive.google.com/file/d/.../view" maxlength="500">
+    @error('video_download_url')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+
+    <div class="form-text small">
+        ارفع الفيديو على يوتيوب كـ <b>Unlisted</b> وحط اللينك فوق. يوتيوب مفيهوش تنزيل رسمي، فعشان زرار التنزيل يشتغل
+        ارفع نفس الفيديو على Google Drive (أو أي مكان) وحط لينكه تحت. لو سيبته فاضي هيظهر زرار "Watch on YouTube" بدل التنزيل.
     </div>
 </div>

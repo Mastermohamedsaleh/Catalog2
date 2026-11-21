@@ -1,0 +1,48 @@
+/* =========================================================
+   AksSap brand layer (ألوان ولوجو AksSap)
+   اللوجو: كحلي غامق + برتقالي. الكحلي للخلفيات والعناوين، والبرتقالي للأزرار والتمييز.
+   لو عايز تغير لون في الموقع كله: عدّل المتغيرات --brand و--navy في :root بتاع كل Layout (أو style.css).
+   ========================================================= */
+
+/* اللوجو الصغير جنب الاسم */
+.brand-logo { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; margin-right: .6rem; vertical-align: middle; box-shadow: 0 2px 8px rgba(5, 15, 53, .25); }
+.sidebar .brand-logo { width: 38px; height: 38px; }
+.auth-hero .brand-logo { width: 52px; height: 52px; border-radius: 13px; }
+
+/* "Aks" بلون النص اللي حواليه، و"Sap" برتقالي زي اللوجو */
+.brand-accent { color: var(--brand); }
+.auth-hero .brand-accent, .sidebar .brand-accent, .site-footer .brand-accent { color: #ff8a1f; }
+
+/* اسم البراند على خلفية بيضاء (النافبار): كحلي بدل البرتقالي عشان القراءة */
+.brand-ink { color: var(--navy, #0a1f5c) !important; }
+
+/* لون النص الأساسي للعناوين أغمق وأقرب للكحلي */
+h1, h2, h3, h4, h5, h6 { color: inherit; }
+
+/* الأزرار والروابط الخفيفة */
+.btn-primary { --bs-btn-color: #fff; --bs-btn-hover-color: #fff; --bs-btn-active-color: #fff; font-weight: 600; }
+.btn-outline-primary { --bs-btn-hover-color: #fff; }
+.btn-light.text-primary, .text-primary.btn-light { color: var(--navy, #0a1f5c) !important; }
+a { color: var(--navy, #0a1f5c); }
+a:hover { color: var(--brand); }
+.btn, .sidebar a, .nav-link { transition: all .15s ease; }
+
+/* تمييز بسيط برتقالي في الهيرو والصفحات الجانبية */
+.hero .btn-light { color: var(--navy, #0a1f5c) !important; }
+.eyebrow { color: var(--brand) !important; }
+.hero::after { background: radial-gradient(circle at 80% 20%, rgba(255, 138, 31, .28), transparent 55%); content: ""; position: absolute; inset: 0; pointer-events: none; }
+.auth-hero::before { background: rgba(255, 138, 31, .14) !important; }
+
+/* الجداول والبادجات */
+.table-modern tbody tr:hover { background: #fff8f2; }
+.badge-soft-primary { background: #fff1e6; color: #b34700; }
+
+/* حقل فوكس */
+.form-control:focus, .form-select:focus { border-color: var(--brand); box-shadow: 0 0 0 .22rem rgba(242, 106, 0, .18); }
+.form-check-input:checked { background-color: var(--brand); border-color: var(--brand); }
+.page-link { color: var(--navy, #0a1f5c); }
+.page-item.active .page-link { background-color: var(--brand); border-color: var(--brand); color: #fff; }
+.progress-bar { background-color: var(--brand); }
+
+/* الأكورديون (الأسئلة الشائعة) بألوان البراند بدل الأزرق الافتراضي */
+.accordion { --bs-accordion-active-bg: #fff1e6; --bs-accordion-active-color: #0a1f5c; --bs-accordion-btn-focus-box-shadow: 0 0 0 .2rem rgba(242, 106, 0, .2); }

@@ -3,9 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My wallet · CatalogPro Merchant</title>
+  <title>My wallet · AksSap Merchant</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
+  <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -13,7 +16,7 @@
 
 <!-- ============ Sidebar ============ -->
 <aside class="sidebar" id="sidebar">
-  <a href="{{ route('merchant.orders.index') }}" class="brand"><i class="bi bi-grid-fill me-2"></i>CatalogPro</a>
+  <a href="{{ route('merchant.orders.index') }}" class="brand"><img src="{{ asset('assets/img/logo.png') }}" alt="AksSap logo" class="brand-logo"><span>Aks<span class="brand-accent">Sap</span></span></a>
   <nav class="nav flex-column flex-grow-1 overflow-auto">
     <div class="nav-label">Merchant</div>
     <a class="nav-link" href="{{ route('merchant.orders.index') }}"><i class="bi bi-cart-plus"></i>New order</a>

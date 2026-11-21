@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Customers Management · CatalogPro Admin')
+@section('title', 'Customers Management · AksSap Admin')
 @section('page_title', 'Store Customers')
 
 @section('content')

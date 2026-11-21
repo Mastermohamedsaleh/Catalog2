@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Categories · CatalogPro Admin')
+@section('title', 'Categories · AksSap Admin')
 @section('page_title', 'Categories')
 
 @section('content')
@@ -80,8 +80,7 @@
                                 <i class="bi bi-pencil text-primary"></i>
                             </button>
 
-                            <!-- تم التعديل هنا لاستخدام slug بدلاً من id -->
-                            <form action="{{ route('admin.categories.destroy', $category->slug) }}" method="POST" class="d-inline delete-form">
+                            <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-light text-danger" aria-label="Delete">
@@ -114,8 +113,7 @@
 @foreach($categories as $category)
 <div class="modal fade" id="editCategoryModal{{ $category->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <!-- تم التعديل هنا لاستخدام slug بدلاً من id -->
-        <form action="{{ route('admin.categories.update', $category->slug) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 rounded-4 shadow-lg">
+        <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 rounded-4 shadow-lg">
             @csrf
             @method('PUT')
             <div class="modal-header border-0 pb-0">
@@ -255,6 +253,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // لو حصل خطأ في الـ Validation، افتح مودال الإضافة تلقائياً عشان المستخدم يشوف الخطأ
     @if ($errors->has('name') || $errors->has('parent_id') || $errors->has('description') || $errors->has('image'))
         @if(!session('edit_modal_id'))
             var categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));

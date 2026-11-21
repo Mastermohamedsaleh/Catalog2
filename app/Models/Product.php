@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Category;
+use App\Support\VideoLinks;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -19,28 +20,38 @@ class Product extends Model
         'gallery_images',
         'downloadable_file',
         'video_url',
+        'video_download_url',
         'is_active',
     ];
 
-    /** Signed player URL when the stored value is a Bunny video id; null for legacy local files / no video. */
+    /**
+     * لينك مشغل يوتيوب (embed) من اللينك المخزّن في video_url.
+     * بيرجع null لو القيمة مش لينك يوتيوب (مفيش فيديو، أو ملف قديم على السيرفر).
+     */
     public function getVideoEmbedUrlAttribute(): ?string
     {
-        $bunny = app(\App\Services\BunnyStreamService::class);
-
-        return $bunny->isVideoId($this->video_url) ? $bunny->embedUrl($this->video_url) : null;
+        return VideoLinks::embedUrl($this->video_url);
     }
 
-    public function getVideoDownloadUrlAttribute(): ?string
+    /** لينك فتح الفيديو على يوتيوب نفسه (زرار "Watch on YouTube"). */
+    public function getVideoWatchUrlAttribute(): ?string
     {
-        $bunny = app(\App\Services\BunnyStreamService::class);
-
-        return $bunny->isVideoId($this->video_url) ? $bunny->downloadUrl($this->video_url) : null;
+        return VideoLinks::normalizeYoutube($this->video_url);
     }
 
-    /** Videos uploaded before the move to Bunny are still plain files on the public disk. */
+    /** لينك التنزيل الجاهز للزرار (لينك Drive بيتحول لتنزيل مباشر). null لو مفيش. */
+    public function getVideoDownloadLinkAttribute(): ?string
+    {
+        return VideoLinks::downloadLink($this->video_download_url);
+    }
+
+    /** فيديوهات قديمة اترفعت كملف على السيرفر (مسار زي products/videos/x.mp4). */
     public function getHasLegacyVideoAttribute(): bool
     {
-        return filled($this->video_url) && ! app(\App\Services\BunnyStreamService::class)->isVideoId($this->video_url);
+        return filled($this->video_url)
+            && ! VideoLinks::youtubeId($this->video_url)
+            && str_contains($this->video_url, '/')
+            && ! preg_match('~^https?://~i', $this->video_url);
     }
 
     public function category()

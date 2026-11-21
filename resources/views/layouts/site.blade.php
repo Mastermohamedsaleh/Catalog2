@@ -3,23 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'CatalogPro – Dropshipping Platform')</title>
+    <title>@yield('title', 'AksSap – Dropshipping Platform')</title>
     <meta name="description" content="Browse our product catalog by category.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
+  <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
     <style>
         :root {
-            --brand: #4f46e5;
-            --brand-dark: #4338ca;
-            --brand-soft: #eef2ff;
+            --brand: #f26a00;
+            --brand-dark: #d95a00;
+            --brand-soft: #fff1e6;
+  --navy: #0a1f5c;
+  --navy-deep: #050f35;
+  --amber: #ffb000;
             --ink: #0f172a;
             --muted: #64748b;
             --canvas: #f4f6fb;
-            --sidebar: #0f172a;
+            --sidebar: #07143f;
             --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .06);
             --shadow-md: 0 8px 24px rgba(15, 23, 42, .08);
             --bs-primary: var(--brand);
-            --bs-primary-rgb: 79, 70, 229;
+            --bs-primary-rgb: 242, 106, 0;
             --bs-body-font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
         body { background: var(--canvas); color: var(--ink); -webkit-font-smoothing: antialiased; }
@@ -30,18 +36,18 @@
             --bs-btn-hover-bg: var(--brand); --bs-btn-hover-border-color: var(--brand); }
         .text-primary { color: var(--brand) !important; }
         .site-nav { background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); box-shadow: var(--shadow-sm); }
-        .hero { background: linear-gradient(135deg, #1e1b4b, #4f46e5 65%, #7c3aed); color: #fff; border-radius: 1.5rem; position: relative; overflow: hidden; }
+        .hero { background: linear-gradient(135deg, #050f35 0%, #0a1f5c 62%, #17389a 100%); color: #fff; border-radius: 1.5rem; position: relative; overflow: hidden; }
         .hero::after { content: ""; position: absolute; width: 340px; height: 340px; right: -80px; top: -100px; border-radius: 50%; background: rgba(255, 255, 255, .09); }
         .cat-card { border: 0; border-radius: 1.1rem; background: #fff; box-shadow: var(--shadow-sm); overflow: hidden; transition: transform .2s, box-shadow .2s; height: 100%; color: inherit; display: block; }
         .cat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); color: inherit; }
         .ph { display: grid; place-items: center; color: rgba(255, 255, 255, .92); }
         .ph-cat { height: 130px; font-size: 3rem; }
-        .g1 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-        .g2 { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
-        .g3 { background: linear-gradient(135deg, #10b981, #059669); }
-        .g4 { background: linear-gradient(135deg, #f59e0b, #ea580c); }
-        .g5 { background: linear-gradient(135deg, #ec4899, #db2777); }
-        .g6 { background: linear-gradient(135deg, #14b8a6, #0891b2); }
+        .g1 { background: linear-gradient(135deg, #0a1f5c, #1b3a9a); }
+        .g2 { background: linear-gradient(135deg, #ff7a00, #ffb000); }
+        .g3 { background: linear-gradient(135deg, #06133f, #0a1f5c); }
+        .g4 { background: linear-gradient(135deg, #ffb000, #f26a00); }
+        .g5 { background: linear-gradient(135deg, #1b3a9a, #2a56d0); }
+        .g6 { background: linear-gradient(135deg, #d95a00, #f26a00); }
         .site-footer { background: var(--sidebar); color: #94a3b8; }
     </style>
     @stack('styles')
@@ -51,7 +57,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-md site-nav sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold text-primary" href="{{ url('/') }}"><i class="bi bi-grid-fill me-2"></i>CatalogPro</a>
+        <a class="navbar-brand fw-bold brand-ink" href="{{ url('/') }}"><img src="{{ asset('assets/img/logo.png') }}" alt="AksSap logo" class="brand-logo"><span>Aks<span class="brand-accent">Sap</span></span></a>
         <button class="navbar-toggler border-0" data-bs-toggle="collapse" data-bs-target="#nav" aria-label="Menu"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav me-auto ms-md-3">
@@ -84,7 +90,7 @@
 <!-- Footer -->
 <footer class="site-footer py-4 mt-5">
     <div class="container d-flex flex-column flex-md-row justify-content-between gap-2 small">
-        <span>© 2026 CatalogPro. All rights reserved.</span>
+        <span>© 2026 AksSap. All rights reserved.</span>
         <span><a href="{{ route('login') }}" class="text-reset">Admin / Marketer login</a></span>
     </div>
 </footer>

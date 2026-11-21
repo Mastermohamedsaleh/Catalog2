@@ -1,6 +1,6 @@
 <aside class="sidebar" id="sidebar">
     <a href="{{ route('admin.dashboard') }}" class="brand">
-        <i class="bi bi-grid-fill me-2"></i>CatalogPro
+        <img src="{{ asset('assets/img/logo.png') }}" alt="AksSap logo" class="brand-logo"><span>Aks<span class="brand-accent">Sap</span></span>
     </a>
     
     <nav class="nav flex-column flex-grow-1 overflow-auto">
@@ -18,8 +18,8 @@
     </a>
         </a>
 <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
-      <i class="bi bi-box-seam"></i>Orders
-    </a>
+  <i class="bi bi-clipboard-check"></i>Orders
+</a>
 @if(auth()->check() && auth()->user()->is_super)
     <div class="nav-label">Security & Access</div>
     <a class="nav-link {{ request()->routeIs('admin.admins.*') ? 'active' : '' }}" href="{{ route('admin.admins.index') }}">
@@ -27,9 +27,9 @@
     </a>
 @endif
 
-<div class="nav-label">Marketer</div>
+<div class="nav-label">Users & Customers</div>
 <a class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}" href="{{ route('admin.customers.index') }}">
-    <i class="bi bi-people"></i>Marketer
+    <i class="bi bi-people"></i>Customers
 </a>
 
         <div class="nav-label">Site</div>

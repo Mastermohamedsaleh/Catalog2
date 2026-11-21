@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Orders · CatalogPro Admin')
+@section('title', 'Orders · AksSap Admin')
 @section('page_title', 'Store Orders')
 
 @section('content')
