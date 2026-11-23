@@ -101,8 +101,7 @@ class ProfileController extends Controller
             return 'Admin accounts can only be removed by a super admin.';
         }
 
-        // تم استبدال withTrashed() والاعتماد على الاستعلام العادي في الأوردرات
-        if (Order::where('user_id', $user->id)->exists()) {
+        if (Order::query()->where('user_id', $user->id)->exists()) {
             return 'This account has orders, so it cannot be deleted. Please contact support.';
         }
 

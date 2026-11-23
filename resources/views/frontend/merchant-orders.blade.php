@@ -121,6 +121,7 @@
           <label for="sellingPrice" class="form-label small fw-semibold">Selling price <span class="text-muted fw-normal">(per item)</span> <span class="text-danger">*</span></label>
           <div class="input-group"><input type="number" class="form-control" id="sellingPrice" name="selling_price" min="0" step="0.01" required placeholder="0.00"><span class="input-group-text">{{ config('shop.currency') }}</span></div>
           <div class="form-text fw-semibold" id="minSellHint"></div>
+          <div class="form-text">The {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} delivery fee is added automatically. Do not include it in your price.</div>
           <div class="invalid-feedback">Selling price must be at least the product price.</div>
         </div>
 
@@ -144,16 +145,54 @@
         <!-- بيانات العميل -->
         <div class="col-md-6">
           <label for="customerName" class="form-label small fw-semibold">Customer name <span class="text-danger">*</span></label>
-          <div class="input-icon"><i class="bi bi-person"></i><input type="text" class="form-control" id="customerName" name="customer_name" required minlength="3" placeholder="Full name"><div class="invalid-feedback">Enter customer name.</div></div>
+          <div class="input-icon"><i class="bi bi-person"></i><input type="text" class="form-control" id="customerName" name="customer_name" value="{{ old('customer_name') }}" required minlength="3" placeholder="Full name"><div class="invalid-feedback">Enter customer name.</div></div>
         </div>
         <div class="col-md-6">
           <label for="customerPhone" class="form-label small fw-semibold">Customer phone <span class="text-danger">*</span></label>
-          <div class="input-icon"><i class="bi bi-telephone"></i><input type="tel" class="form-control" id="customerPhone" name="customer_phone" required placeholder="05XXXXXXXX"><div class="invalid-feedback">Enter valid phone number.</div></div>
+          <div class="input-icon"><i class="bi bi-telephone"></i><input type="tel" class="form-control" id="customerPhone" name="customer_phone" value="{{ old('customer_phone') }}" required placeholder="05XXXXXXXX"><div class="invalid-feedback">Enter valid phone number.</div></div>
         </div>
+
+        <!-- الإمارة + نوع الزبون -->
+        <div class="col-md-5">
+          <label for="emirate" class="form-label small fw-semibold">Emirate <span class="text-danger">*</span></label>
+          <select class="form-select" id="emirate" name="emirate" required>
+            <option value="">Choose the customer's emirate…</option>
+            @foreach(config('shop.emirates') as $emirate)
+              <option value="{{ $emirate }}" @selected(old('emirate') === $emirate)>{{ $emirate }}</option>
+            @endforeach
+          </select>
+          <div class="invalid-feedback">Choose the emirate.</div>
+        </div>
+        <div class="col-md-7">
+          <label class="form-label small fw-semibold d-block">Customer type <span class="text-danger">*</span></label>
+          <div class="btn-group w-100" role="group" aria-label="Customer type">
+            <input type="radio" class="btn-check" name="customer_type" id="ctNew" value="new" required @checked(old('customer_type') === 'new')>
+            <label class="btn btn-outline-primary" for="ctNew"><i class="bi bi-person-plus me-1"></i>New customer</label>
+            <input type="radio" class="btn-check" name="customer_type" id="ctReturning" value="returning" @checked(old('customer_type') === 'returning')>
+            <label class="btn btn-outline-primary" for="ctReturning"><i class="bi bi-arrow-repeat me-1"></i>Returning customer</label>
+          </div>
+        </div>
+
         <div class="col-12">
           <label for="customerAddress" class="form-label small fw-semibold">Customer address <span class="text-danger">*</span></label>
-          <textarea class="form-control" id="customerAddress" name="customer_address" rows="2" required placeholder="Governorate, city, street, building…"></textarea>
+          <textarea class="form-control" id="customerAddress" name="customer_address" rows="2" required placeholder="Area, street, building, apartment…">{{ old('customer_address') }}</textarea>
           <div class="invalid-feedback">Enter delivery address.</div>
+        </div>
+        <div class="col-12">
+          <label for="orderNotes" class="form-label small fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea class="form-control" id="orderNotes" name="notes" rows="2" maxlength="500" placeholder="Anything the delivery team should know…">{{ old('notes') }}</textarea>
+        </div>
+
+        <!-- ملخص اللي الزبون هيدفعه: المنتجات + التوصيل = الإجمالي -->
+        <div class="col-12">
+          <div class="rounded-4 p-3 p-lg-4" style="background:#fff1e6;border:1px solid #ffd9b8">
+            <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Products (selling price × quantity)</span><span class="fw-semibold" id="sumItems">—</span></div>
+            <div class="d-flex justify-content-between small mb-2"><span class="text-muted"><i class="bi bi-truck me-1"></i>Delivery fee <span class="badge bg-warning text-dark ms-1">separate from the product price</span></span><span class="fw-semibold" id="sumDelivery">{{ number_format(config('shop.delivery_fee'), 2, '.', '') }} {{ config('shop.currency') }}</span></div>
+            <div class="d-flex justify-content-between align-items-center border-top pt-2" style="border-color:#ffd9b8!important">
+              <span class="fw-bold">Customer pays (total)</span>
+              <span class="h4 fw-bold mb-0" style="color:var(--navy)" id="sumTotal">—</span>
+            </div>
+          </div>
         </div>
         <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
           <button type="reset" class="btn btn-light">Clear</button>
@@ -175,14 +214,13 @@
                   <th>#</th>
                   <th>Product</th>
                   <th>Customer</th>
-                  <th class="d-none d-xxl-table-cell">Address</th>
-                  <th>Cost</th>
-                  <th>Selling</th>
                   <th>Qty</th>
-                  <th>Size / Color</th>
+                  <th>Selling</th>
+                  <th>Customer pays</th>
                   <th>Profit</th>
                   <th>Status</th>
                   <th>Wallet</th>
+                  <th class="text-end">Details</th>
               </tr>
           </thead>
           <tbody>
@@ -198,26 +236,16 @@
                           @else
                               Deleted Product
                           @endif
+                          @if($order->variant)
+                              <div><span class="badge bg-secondary fw-normal">{{ $order->variant->size ?? 'N/A' }}@if($order->variant->color) | {{ $order->variant->color }}@endif</span></div>
+                          @endif
                       </td>
-                      <td>{{ $order->customer_name }}<br><small class="text-muted">{{ $order->customer_phone }}</small></td>
-                      <td class="d-none d-xxl-table-cell small text-muted">{{ $order->customer_address }}</td>
-                      <td>{{ $order->product_price }} {{ config('shop.currency') }}</td>
-                      <td>{{ $order->selling_price }} {{ config('shop.currency') }}</td>
+                      <td>{{ $order->customer_name }}<br><small class="text-muted">{{ $order->customer_phone }}</small>
+                          @if($order->emirate)<div><span class="badge badge-soft-primary fw-normal">{{ $order->emirate }}</span></div>@endif
+                      </td>
                       <td>{{ $order->stock }}</td>
-                      <td>
-                        @if($order->variant)
-                            <div class="mt-1">
-                                <span class="badge bg-secondary">
-                                    Size: {{ $order->variant->size ?? 'N/A' }} 
-                                    @if($order->variant->color)
-                                        | Color: {{ $order->variant->color }}
-                                    @endif
-                                </span>
-                            </div>
-                        @else
-                            <span class="text-muted small">No variant</span>
-                        @endif
-                      </td>
+                      <td>{{ $order->selling_price }} {{ config('shop.currency') }}</td>
+                      <td class="fw-bold">{{ $order->customer_total }} {{ config('shop.currency') }}<div class="small text-muted fw-normal">incl. {{ number_format((float) $order->delivery_fee, 0) }} delivery</div></td>
                       <td class="fw-bold text-success">+{{ $order->profit }} {{ config('shop.currency') }}</td>
                       <td>
                           @if($order->status == 'pending') 
@@ -230,32 +258,14 @@
                                       </button>
                                   </form>
                               </div>
+                          @elseif($order->status == 'processing')
+                              <span class="badge bg-info text-dark">Processing</span>
                           @elseif($order->status == 'delivered') 
                               <span class="badge bg-success">Delivered</span>
                           @elseif($order->status == 'cancelled') 
-                              <div>
-                                  <span class="badge bg-danger">Cancelled</span>
-                              </div>
-                              @if($order->cancellation_reason)
-                                  <div class="mt-1">
-                                      <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" 
-                                              data-bs-toggle="modal" data-bs-target="#merchantReasonModal{{ $order->id }}" style="font-size: 11px;">
-                                          <i class="bi bi-info-circle me-1"></i> View Reason
-                                      </button>
-                                  </div>
-                              @endif
+                              <span class="badge bg-danger">Cancelled</span>
                           @elseif($order->status == 'returned') 
-                              <div>
-                                  <span class="badge bg-secondary">Returned</span>
-                              </div>
-                              @if($order->cancellation_reason)
-                                  <div class="mt-1">
-                                      <button type="button" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" 
-                                              data-bs-toggle="modal" data-bs-target="#merchantReasonModal{{ $order->id }}" style="font-size: 11px;">
-                                          <i class="bi bi-info-circle me-1"></i> View Reason
-                                      </button>
-                                  </div>
-                              @endif
+                              <span class="badge bg-secondary">Returned</span>
                           @else 
                               <span class="badge bg-secondary">{{ ucfirst($order->status) }}</span>
                           @endif
@@ -267,10 +277,13 @@
                               <span class="text-muted small">Pending</span>
                           @endif
                       </td>
+                      <td class="text-end">
+                          <button type="button" class="btn btn-sm btn-light text-nowrap" data-bs-toggle="modal" data-bs-target="#orderDetails{{ $order->id }}"><i class="bi bi-eye me-1"></i>More details</button>
+                      </td>
                   </tr>
               @empty
                   <tr>
-                      <td colspan="11" class="text-center text-muted py-4">No orders placed yet.</td>
+                      <td colspan="10" class="text-center text-muted py-4">No orders placed yet.</td>
                   </tr>
               @endforelse
           </tbody>
@@ -290,33 +303,10 @@
   </main>
 </div>
 
-<!-- ============ مودالات عرض سبب الإلغاء/الإرجاع للتاجر (Read-Only) ============ -->
-@if(isset($orders))
-    @foreach($orders as $order)
-        @if(in_array($order->status, ['cancelled', 'returned']) && $order->cancellation_reason)
-        <div class="modal fade" id="merchantReasonModal{{ $order->id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-<h5 class="modal-title">سبب الـ {{ $order->status == 'cancelled' ? 'إلغاء' : 'إرجاع' }} للطلب #{{ $order->id }}</h5>                        <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-start">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-muted">Detailed Reason:</label>
-                            <div class="p-3 bg-light rounded border text-dark" style="white-space: pre-line; line-height: 1.6;">
-                                {{ $order->cancellation_reason }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
-    @endforeach
-@endif
+<!-- ============ مودالات تفاصيل الأوردر (فيها السبب لو ملغي/مرتجع) ============ -->
+@foreach($orders as $order)
+    @include('partials.order-details-modal', ['order' => $order, 'admin' => false])
+@endforeach
 
 <!-- ============ Scripts ============ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -325,6 +315,7 @@
 <script>
     const productSearchUrl = @json(route('merchant.products.search'));
     const CURRENCY = @json(config('shop.currency'));
+    const DELIVERY_FEE = @json((float) config('shop.delivery_fee'));
 </script>
 
 <script>
@@ -468,6 +459,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalSelling = selling * qty;
         const totalProfit = totalSelling - totalCost;
 
+        // ملخص اللي الزبون هيدفعه: (سعر البيع × الكمية) + رسوم التوصيل. التوصيل مش داخل في ربح التاجر.
+        const itemsCents = toCents(selling) * qty;
+        document.getElementById('sumItems').textContent = selling > 0 ? `${money(itemsCents)} ${CURRENCY}` : '—';
+        document.getElementById('sumDelivery').textContent = `${money(toCents(DELIVERY_FEE))} ${CURRENCY}`;
+        document.getElementById('sumTotal').textContent = selling > 0 ? `${money(itemsCents + toCents(DELIVERY_FEE))} ${CURRENCY}` : '—';
+
         if (selling > 0 && totalProfit >= 0) {
             profitText.textContent = totalProfit.toFixed(2) + ' ' + CURRENCY;
             profitInput.value = totalProfit.toFixed(2);
@@ -497,6 +494,7 @@ document.addEventListener('DOMContentLoaded', function () {
         orderForm.addEventListener('reset', function () {
             currentBaseCents = 0;
             setCost(0, 0);
+            setTimeout(calculateProfit, 0); // بعد ما الفورم يتفضّى فعلاً، عشان الملخص يرجع لـ "—"
             sellingPriceInput.classList.remove('is-invalid');
         });
         sellingPriceInput.addEventListener('input', () => sellingPriceInput.classList.remove('is-invalid'));

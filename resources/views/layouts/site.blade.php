@@ -53,6 +53,7 @@
     @stack('styles')
 </head>
 <body>
+@include('partials.delivery-bar')
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-md site-nav sticky-top">

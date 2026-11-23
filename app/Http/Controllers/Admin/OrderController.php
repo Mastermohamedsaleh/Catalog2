@@ -13,7 +13,7 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with(['user:id,name,email', 'product:id,name', 'variant:id,size,color'])
+        $query = Order::with(['user:id,name,email,phone', 'product:id,name,sku', 'variant:id,size,color'])
             ->latest()->latest('id');
 
         if ($request->filled('user_id')) {
@@ -25,9 +25,10 @@ class OrderController extends Controller
             $like = '%' . addcslashes($search, '%_\\') . '%';
             $query->where(function ($q) use ($search, $like) {
                 if (ctype_digit($search)) {
-                    $q->orWhere('id', (int) $search);
+                    $q->orWhere('id', (int) $search); // exact id, index friendly
                 }
                 $q->orWhere('customer_name', 'like', $like)
+                  ->orWhere('emirate', 'like', $like)
                   ->orWhere('customer_phone', 'like', $like)
                   ->orWhereHas('user', function ($u) use ($like) {
                       $u->where('name', 'like', $like)->orWhere('email', 'like', $like);
@@ -43,7 +44,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order, OrderStatusService $service)
     {
         $data = $request->validate([
-            'status' => 'required|in:pending,processing,shipped,delivered,cancelled,returned',
+            'status' => 'required|in:pending,processing,delivered,cancelled,returned',
             'cancellation_reason' => 'required_if:status,cancelled,returned|nullable|string|max:500',
         ], [
             'cancellation_reason.required_if' => 'يجب كتابة سبب الإلغاء أو الإرجاع نظراً لتغيير حالة الطلب.',
@@ -61,6 +62,7 @@ class OrderController extends Controller
         return back()->with('success', 'تم تحديث حالة الطلب وإدارة المخزون بنجاح!');
     }
 
+    // The reason can only be edited on cancelled / returned orders.
     public function updateReason(Request $request, Order $order)
     {
         if (! in_array($order->status, ['cancelled', 'returned'], true)) {
@@ -77,7 +79,8 @@ class OrderController extends Controller
     }
 
     /**
-     * Only cancelled / returned orders may be removed permanently.
+     * Only cancelled / returned orders (stock already restored, no profit) may be removed.
+     * الحذف نهائي (مفيش Soft Delete). الأوردر الملغي/المرتجع مالوش أرباح ولا حركات محفظة، فمفيش سجل مالي بيضيع.
      */
     public function destroy(Order $order)
     {
@@ -85,9 +88,8 @@ class OrderController extends Controller
             return back()->with('error', 'لا يمكن حذف طلب نشط أو مُسلَّم. قم بإلغائه أولاً لإعادة المخزون.');
         }
 
-        // الحذف النهائي من قاعدة البيانات مباشرة
-        $order->forceDelete();
+        $order->delete();
 
-        return back()->with('success', 'تم حذف الطلب نهائياً بنجاح.');
+        return back()->with('success', 'تم حذف الطلب بنجاح.');
     }
 }

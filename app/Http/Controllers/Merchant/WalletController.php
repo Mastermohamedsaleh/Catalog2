@@ -24,7 +24,7 @@ class WalletController extends Controller
         // One query for all the figures instead of three.
         $stats = Order::where('user_id', $merchant->id)
             ->selectRaw("
-                COALESCE(SUM(CASE WHEN status IN ('pending','processing','shipped') THEN profit ELSE 0 END), 0) AS pending_profit,
+                COALESCE(SUM(CASE WHEN status IN ('pending','processing') THEN profit ELSE 0 END), 0) AS pending_profit,
                 COALESCE(SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END), 0) AS delivered_count,
                 COALESCE(SUM(CASE WHEN status IN ('cancelled','returned') THEN 1 ELSE 0 END), 0) AS lost_count
             ")

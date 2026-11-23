@@ -25,4 +25,12 @@ return [
     'address'   => env('SHOP_ADDRESS', 'Office / Street name, Dubai, United Arab Emirates'),
     'hours'     => env('SHOP_HOURS', "Sat – Thu: 9:00 AM – 6:00 PM\nFriday: Closed"),
     'map_query' => env('SHOP_MAP_QUERY', 'Dubai, United Arab Emirates'),
+
+    // رسوم التوصيل لكل أوردر (مرة واحدة للأوردر مش لكل قطعة). منفصلة عن سعر المنتج وبتتضاف على إجمالي الزبون.
+    'delivery_fee' => (float) env('SHOP_DELIVERY_FEE', 30),
+
+    // الإمارات السبع. بتتخزن في الأوردر باسمها كما هو هنا، فلو غيرت اسم غيّره في الداتابيز كمان.
+    'emirates' => [
+        'Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah',
+    ],
 ];

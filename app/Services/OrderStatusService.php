@@ -22,9 +22,8 @@ class OrderStatusService
 {
     /** Allowed moves. Anything not listed is rejected. */
     public const TRANSITIONS = [
-        'pending'    => ['processing', 'shipped', 'delivered', 'cancelled'],
-        'processing' => ['shipped', 'delivered', 'cancelled'],
-        'shipped'    => ['delivered', 'returned', 'cancelled'],
+        'pending'    => ['processing', 'delivered', 'cancelled'],
+        'processing' => ['delivered', 'returned', 'cancelled'],
     ];
 
     public function __construct(private StockService $stock)

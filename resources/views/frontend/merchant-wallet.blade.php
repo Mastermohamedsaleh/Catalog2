@@ -135,7 +135,6 @@
                       <td>
                           @if($order->status == 'pending') <span class="badge badge-soft-warning text-dark">Pending</span>
                           @elseif($order->status == 'processing') <span class="badge badge-soft-info text-dark">Processing</span>
-                          @elseif($order->status == 'shipped') <span class="badge badge-soft-primary text-dark">Shipped</span>
                           @elseif($order->status == 'delivered') <span class="badge badge-soft-success text-dark">Delivered</span>
                           @elseif($order->status == 'cancelled') <span class="badge badge-soft-danger text-dark">Cancelled</span>
                           @elseif($order->status == 'returned') <span class="badge badge-soft-secondary text-dark">Returned</span>

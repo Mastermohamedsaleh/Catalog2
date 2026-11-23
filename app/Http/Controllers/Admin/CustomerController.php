@@ -109,7 +109,7 @@ class CustomerController extends Controller
         }
 
         // Orders and the wallet ledger are financial records: never delete them with the user.
-        $hasHistory = Order::withTrashed()->where('user_id', $customer->id)->exists()
+        $hasHistory = Order::query()->where('user_id', $customer->id)->exists()
             || Wallet::where('user_id', $customer->id)->where('balance', '>', 0)->exists()
             || WalletTransaction::whereIn('wallet_id', Wallet::where('user_id', $customer->id)->select('id'))->exists();
 

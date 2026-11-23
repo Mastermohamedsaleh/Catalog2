@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
@@ -60,9 +61,16 @@ class OrderController extends Controller
             'customer_name'      => 'required|string|max:255',
             'customer_phone'     => ['required', 'string', Phone::rule()],
             'customer_address'   => 'required|string|max:500',
+            // الإمارة لازم تكون واحدة من السبع في config/shop.php، ونوع الزبون جديد أو قديم، والملاحظات اختيارية.
+            'emirate'            => ['required', 'string', Rule::in(config('shop.emirates'))],
+            'customer_type'      => ['required', Rule::in(['new', 'returning'])],
+            'notes'              => 'nullable|string|max:500',
             'selling_price'      => 'required|numeric|min:0|max:99999999',
         ], [
             'customer_phone.regex' => 'رقم هاتف العميل غير صحيح. ' . Phone::message(),
+            'emirate.required'       => 'اختر الإمارة التي يقيم فيها الزبون.',
+            'emirate.in'             => 'الإمارة المختارة غير صحيحة.',
+            'customer_type.required' => 'حدد هل الزبون جديد أم قديم.',
         ]);
 
         $qty = (int) $data['stock'];
@@ -128,8 +136,13 @@ class OrderController extends Controller
                     'customer_name'      => $data['customer_name'],
                     'customer_phone'     => $data['customer_phone'],
                     'customer_address'   => $data['customer_address'],
+                    'emirate'            => $data['emirate'],
+                    'customer_type'      => $data['customer_type'],
+                    'notes'              => filled($data['notes'] ?? null) ? trim($data['notes']) : null,
                     'product_price'      => $cost,
                     'selling_price'      => $data['selling_price'],
+                    // رسوم التوصيل (30 درهم) بتتسجل مع الأوردر نفسه ومش بتدخل في ربح التاجر.
+                    'delivery_fee'       => Money::fromCents(Money::toCents(config('shop.delivery_fee'))),
                     'profit'             => Money::profit($data['selling_price'], $cost, $qty),
                     'stock'              => $qty,
                     'status'             => 'pending',

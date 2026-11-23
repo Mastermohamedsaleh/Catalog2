@@ -131,7 +131,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 5. إنشاء 90 أوردر بحالات مختلفة وتوزيعها على التجار
-        $statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'];
+        $statuses = ['pending', 'processing', 'delivered', 'cancelled', 'returned'];
         $cancellationReasons = [
             'العميل لم يرد على الاتصالات وتم إلغاء الطلب.',
             'تم إلغاء الطلب بناءً على رغبة العميل.',
@@ -165,7 +165,11 @@ class DatabaseSeeder extends Seeder
                 'product_variant_id' => $variant ? $variant->id : null,
                 'customer_name' => "Customer Test {$o}",
                 'customer_phone' => '050' . rand(1000000, 9999999),
-                'customer_address' => 'Dubai, UAE - Street ' . $o,
+                'customer_address' => 'Street ' . $o . ', Building ' . rand(1, 40),
+                'emirate' => config('shop.emirates')[array_rand(config('shop.emirates'))],
+                'customer_type' => rand(0, 1) ? 'new' : 'returning',
+                'notes' => rand(0, 3) === 0 ? 'Call before delivery.' : null,
+                'delivery_fee' => config('shop.delivery_fee'),
                 'product_price' => $product->price,
                 'selling_price' => $sellingPrice,
                 'profit' => $profit,

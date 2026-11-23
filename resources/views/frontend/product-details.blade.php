@@ -12,6 +12,7 @@
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
+@include('partials.delivery-bar')
 <div id="toastTop" aria-live="polite"></div>
 
 <!-- ============ Navbar ============ -->
@@ -136,7 +137,7 @@
       <ul class="list-unstyled small mb-4">
         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Total Stock: {{ $product->stock ?? 0 }} available</li>
         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Original, quality-checked product</li>
-        <li><i class="bi bi-check-circle-fill text-success me-2"></i>Fast delivery &amp; support</li>
+        <li><i class="bi bi-truck text-success me-2"></i>Delivery: flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} per order, <strong>separate from the product price</strong></li>
       </ul>
 
       <div class="d-grid gap-2">

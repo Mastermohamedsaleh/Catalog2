@@ -12,6 +12,7 @@
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
+@include('partials.delivery-bar')
 
 <nav class="navbar navbar-expand-md site-nav sticky-top">
   <div class="container">

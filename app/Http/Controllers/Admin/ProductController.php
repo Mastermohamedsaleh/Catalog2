@@ -232,7 +232,7 @@ class ProductController extends Controller
                 $keep = collect($variants)->keys()->all();
                 foreach ($existing as $row) {
                     $key = mb_strtolower($row->size . '|' . $row->color);
-                    if (! in_array($key, $keep, true) && Order::withTrashed()->where('product_variant_id', $row->id)->exists()) {
+                    if (! in_array($key, $keep, true) && Order::query()->where('product_variant_id', $row->id)->exists()) {
                         throw ValidationException::withMessages([
                             'variants' => "لا يمكن حذف المقاس ({$row->size} {$row->color}) لوجود أوردرات عليه. اجعل مخزونه 0 بدلاً من حذفه.",
                         ]);
@@ -315,7 +315,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         // Orders are financial records. Deleting a product with orders is refused (the foreign key also blocks it).
-        if (Order::withTrashed()->where('product_id', $product->id)->exists()) {
+        if (Order::query()->where('product_id', $product->id)->exists()) {
             return back()->with('error', 'لا يمكن حذف منتج عليه أوردرات. قم بإلغاء تفعيله بدلاً من حذفه.');
         }
 

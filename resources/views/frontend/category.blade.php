@@ -12,6 +12,7 @@
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
+@include('partials.delivery-bar')
 <div id="toastTop" aria-live="polite"></div>
 
 <!-- ============ Navbar ============ -->

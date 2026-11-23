@@ -41,18 +41,17 @@
         </div>
     @endif
 
-    <!-- Table -->
+    <!-- Table: مختصر وواضح. باقي التفاصيل (العنوان، الملاحظات، تفصيل الأسعار...) في زرار Details -->
     <div class="table-responsive p-3">
         <table class="table table-modern align-middle mb-0" id="ordersTable">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Customer Info</th>
+                    <th>Customer</th>
                     <th>Product</th>
-                    <th>Prices (Cost / Sell)</th>
-                    <th>Profit</th>
-                    <th>Size / Color</th>
                     <th>Qty</th>
+                    <th>Customer pays</th>
+                    <th>Profit</th>
                     <th>Status</th>
                     <th>Marketer</th>
                     <th>Date</th>
@@ -65,42 +64,34 @@
                         <td>{{ $orders->firstItem() + $loop->index }}</td>
                         <td>
                             <div class="fw-semibold">{{ $order->customer_name }}</div>
-                            <div class="small text-muted"><i class="bi bi-envelope me-1"></i>{{ $order->customer_email ?? 'No Email Provided' }}</div>
                             <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ $order->customer_phone }}</div>
+                            <div class="mt-1 d-flex flex-wrap gap-1">
+                                @if($order->emirate)<span class="badge badge-soft-primary fw-normal"><i class="bi bi-geo-alt me-1"></i>{{ $order->emirate }}</span>@endif
+                                @if($order->customer_type === 'new')<span class="badge badge-soft-success fw-normal">New</span>
+                                @elseif($order->customer_type === 'returning')<span class="badge badge-soft-warning fw-normal">Returning</span>@endif
+                            </div>
                         </td>
                         <td>
                             <a href="{{ route('shop.product.show', $order->product_id) }}" target="_blank" class="fw-semibold text-primary text-decoration-none" title="View Product Details">
                                 {{ $order->product->name ?? '—' }} <i class="bi bi-box-arrow-up-right small ms-1 opacity-75"></i>
                             </a>
+                            @if($order->variant)
+                                <div><span class="badge bg-secondary fw-normal">{{ $order->variant->size ?? 'N/A' }}@if($order->variant->color) | {{ $order->variant->color }}@endif</span></div>
+                            @endif
                         </td>
+                        <td><span class="fw-bold">{{ $order->stock }}</span></td>
                         <td>
-                            <div class="small text-muted">Cost: <span class="fw-semibold text-dark">{{ $order->product_price }} {{ config('shop.currency') }}</span></div>
-                            <div class="small text-muted">Sell: <span class="fw-semibold text-dark">{{ $order->selling_price }} {{ config('shop.currency') }}</span></div>
+                            <div class="fw-bold">{{ $order->customer_total }} {{ config('shop.currency') }}</div>
+                            <div class="small text-muted">incl. {{ number_format((float) $order->delivery_fee, 0) }} delivery</div>
                         </td>
                         <td>
                             <span class="badge badge-soft-success fw-bold">+{{ $order->profit }} {{ config('shop.currency') }}</span>
-                        </td>
-                        <td>
-                            @if($order->variant)
-                                <span class="badge bg-secondary">
-                                    المقاس: {{ $order->variant->size ?? 'N/A' }} 
-                                    @if($order->variant->color)
-                                        | اللون: {{ $order->variant->color }}
-                                    @endif
-                                </span>
-                            @else
-                                <span class="text-muted small">بدون مقاس/لون</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="fw-bold">{{ $order->stock }}</span>
                         </td>
                         <td>
                             @php
                                 $statusColors = [
                                     'pending' => 'warning',
                                     'processing' => 'info',
-                                    'shipped' => 'primary',
                                     'delivered' => 'success',
                                     'cancelled' => 'danger',
                                     'returned' => 'secondary',
@@ -128,6 +119,11 @@
                             {{ $order->created_at->diffForHumans() }}
                         </td>
                         <td class="text-end text-nowrap">
+                            <!-- كل التفاصيل في مودال -->
+                            <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#orderDetails{{ $order->id }}" title="Full order details">
+                                <i class="bi bi-eye me-1"></i>Details
+                            </button>
+
                             <!-- زرار تحديث الحالة -->
                             <button class="btn btn-icon btn-light" 
                                     data-bs-toggle="modal" 
@@ -136,7 +132,7 @@
                                 <i class="bi bi-gear text-primary"></i>
                             </button>
 
-                            <!-- زرار الحذف -->
+                            <!-- زرار الحذف (للملغي/المرتجع بس، وهو حذف نهائي) -->
                             <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
@@ -148,7 +144,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="text-center text-muted py-4">No orders found.</td>
+                        <td colspan="10" class="text-center text-muted py-4">No orders found.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -165,6 +161,11 @@
         </div>
     @endif
 </div>
+
+<!-- مودالات تفاصيل كل أوردر -->
+@foreach($orders as $order)
+    @include('partials.order-details-modal', ['order' => $order, 'admin' => true])
+@endforeach
 
 <!-- مودالات تعديل حالة الطلب لكل أوردر -->
 @if(isset($orders))
@@ -192,20 +193,19 @@
                     <!-- اختيار الحالة (Select) -->
                     <div class="mb-3 text-end">
                         <label class="form-label small fw-semibold">حالة الطلب <span class="text-danger">*</span></label>
-                        <select name="status" class="form-select" required>
+                        <select name="status" class="form-select js-status-select" required>
                             <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>قيد الانتظار (Pending)</option>
                             <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>جاري التجهيز (Processing)</option>
-                            <option value="shipped" {{ $order->status == 'shipped' ? 'selected' : '' }}>تم الشحن (Shipped)</option>
                             <option value="delivered" {{ $order->status == 'delivered' ? 'selected' : '' }}>تم التوصيل (Delivered)</option>
                             <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>ملغي (Cancelled)</option>
                             <option value="returned" {{ $order->status == 'returned' ? 'selected' : '' }}>مرتجع (Returned)</option>
                         </select>
                     </div>
 
-                    <!-- سبب الإلغاء أو الإرجاع -->
-                    <div class="mb-3 text-end">
-                        <label class="form-label small fw-semibold">سبب الإلغاء أو الإرجاع <span class="text-danger">(لو تم اختيار ملغي أو مرتجع)</span></label>
-                        <textarea name="cancellation_reason" class="form-control" rows="3" placeholder="اكتب السبب هنا...">{{ $order->cancellation_reason }}</textarea>
+                    <!-- السبب: بيظهر بس لما تختار "ملغي" أو "مرتجع" (الـ JS تحت بيظهره ويخليه إجباري) -->
+                    <div class="mb-3 text-end js-reason-box" style="display:none">
+                        <label class="form-label small fw-semibold">السبب <span class="text-danger">*</span></label>
+                        <textarea name="cancellation_reason" class="form-control" rows="3" placeholder="اكتب السبب هنا..." maxlength="500">{{ $order->cancellation_reason }}</textarea>
                     </div>
                 @endif
             </div>
@@ -259,6 +259,21 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // السبب بيظهر ويبقى إجباري بس مع "ملغي" أو "مرتجع". غير كده بيتخفي ومبيتبعتش.
+    document.querySelectorAll('.js-status-select').forEach(select => {
+        const form = select.closest('form');
+        const box = form.querySelector('.js-reason-box');
+        const textarea = box.querySelector('textarea');
+        const sync = () => {
+            const needs = ['cancelled', 'returned'].includes(select.value);
+            box.style.display = needs ? '' : 'none';
+            textarea.required = needs;
+            textarea.disabled = !needs;
+        };
+        select.addEventListener('change', sync);
+        sync();
+    });
+
     // تأكيد الحذف
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function (e) {
