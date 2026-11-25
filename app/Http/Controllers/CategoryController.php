@@ -22,7 +22,11 @@ class CategoryController extends Controller
             ->latest()->latest('id')
             ->paginate(10);
 
-        return view('admin.categories.index', compact('categories'));
+        // الأقسام الرئيسية بتتحمّل مرة واحدة هنا وبتتستخدم في قوائم "Parent Category" كلها.
+        // (قبل كده الـ view كانت بتعمل استعلام جديد لكل قسم في الجدول = N+1).
+        $rootCategories = Category::whereNull('parent_id')->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.categories.index', compact('categories', 'rootCategories'));
     }
 
     public function show(Category $category)

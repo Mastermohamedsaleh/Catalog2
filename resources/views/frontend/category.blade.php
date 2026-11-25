@@ -28,9 +28,9 @@
       <div class="d-flex gap-2">
         @auth
             @if(auth()->user()->role === 'catalog_master_root' || auth()->user()->is_super || auth()->user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">My Dashboard</a>
             @else
-                <a href="{{ route('merchant.orders.index') }}" class="btn btn-primary">Dashboard</a>
+                <a href="{{ route('merchant.orders.index') }}" class="btn btn-primary">My Dashboard</a>
             @endif
         @else
             <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">Sign in</a>
@@ -74,7 +74,7 @@
   <!-- العرض الذكي: لو فيه أقسام فرعية اعرضها، لو مفيش اعرض المنتجات مباشرة -->
   @if($category->children->count() > 0)
       <div class="mb-5">
-          <h3 class="h5 fw-bold mb-3">الأقسام الفرعية</h3>
+          <h3 class="h5 fw-bold mb-3">Collections</h3>
           <div class="row g-3 g-lg-4 row-cols-2 row-cols-md-3 row-cols-xl-4">
               @foreach($category->children as $index => $subcat)
                   @php

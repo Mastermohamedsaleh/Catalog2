@@ -58,7 +58,7 @@ class ProductController extends Controller
             }],
             'name'        => 'required|string|max:255|unique:products,name' . $idRule,
             'sku'         => 'nullable|string|max:100|unique:products,sku' . $idRule,
-            'price'       => 'required|numeric|min:0|max:99999999',
+            'price'       => 'required|numeric|min:0.01|max:99999999',
             'stock'       => 'required|integer|min:0|max:10000000',
             'original_stock' => 'nullable|integer|min:0',
             'main_image'  => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:max_width=6000,max_height=6000',
@@ -73,7 +73,7 @@ class ProductController extends Controller
             // لينك التنزيل المنفصل (Google Drive / Dropbox ...). http/https بس.
             'video_download_url' => ['nullable', 'url:http,https', 'max:500'],
             'remove_video' => 'nullable|boolean',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:5000',
             'variants'                  => 'nullable|array|max:100',
             'variants.*.size'           => 'nullable|string|max:50',
             'variants.*.color'          => 'nullable|string|max:50',
@@ -87,9 +87,14 @@ class ProductController extends Controller
     {
         return [
             'name.unique'          => 'عذراً، هذا الاسم مسجل مسبقاً لمنتج آخر. يرجى اختيار اسم فريد.',
-            'sku.unique'           => 'كود المنتج (SKU) مستخدم من قبل، يرجى اختيار كود فريد.',
+            'sku.unique'           => 'كود المنتج مستخدم من قبل، يرجى اختيار كود فريد.',
             'category_id.required' => 'يرجى اختيار القسم التابع له المنتج.',
             'price.required'       => 'سعر الجملة مطلوب.',
+            'price.min'            => 'سعر الجملة لازم يكون أكبر من صفر.',
+            'images.max'           => 'الحد الأقصى 10 صور في المرة الواحدة.',
+            'images.*.image'       => 'كل ملف في معرض الصور لازم يكون صورة.',
+            'images.*.max'         => 'حجم الصورة الواحدة لا يزيد عن 2 ميجا.',
+            'main_image.max'       => 'حجم الصورة الرئيسية لا يزيد عن 2 ميجا.',
             'stock.required'       => 'كمية المخزون مطلوبة.',
         ];
     }
@@ -148,6 +153,11 @@ class ProductController extends Controller
     {
         $request->validate($this->rules(), $this->messages());
         $variants = $this->submittedVariants($request);
+
+        // لينك التنزيل من غير لينك يوتيوب ملوش معنى. بنرفضه قبل أي رفع صور.
+        if (! VideoLinks::youtubeId($request->input('video_url')) && $request->filled('video_download_url')) {
+            throw ValidationException::withMessages(['video_url' => 'أضف لينك يوتيوب أولاً، أو امسح لينك التنزيل.']);
+        }
 
         $uploaded = []; // files written so far: removed again if anything below fails
         $imagePath = $videoPath = null;
@@ -218,7 +228,25 @@ class ProductController extends Controller
                 $uploaded[] = $newMain = $this->mediaService->uploadAndOptimizeImage($request->file('main_image'), 'products/images');
             }
             $newVideo = VideoLinks::normalizeYoutube($request->input('video_url'));
-            $removeVideo = ! $newVideo && $request->boolean('remove_video');
+
+            // الفورم بيعرض لينك يوتيوب الحالي جوه الحقل. لو الأدمن مسحه وسابه فاضي يبقى قصده يشيل الفيديو.
+            // (القديم كان بيعتبر الحقل الفاضي "سيبه زي ما هو" فاللينك كان بيرجع تاني بعد الحفظ.)
+            // الاستثناء الوحيد: فيديو قديم متخزن كملف على السيرفر، الحقل بتاعه بيظهر فاضي دايماً، فمايتمسحش إلا بالـ checkbox.
+            $hasLegacyFile = $product->has_legacy_video;
+            $fieldCleared  = $request->has('video_url') && ! $request->filled('video_url') && ! $hasLegacyFile;
+            $removeVideo   = ! $newVideo && ($request->boolean('remove_video') || $fieldCleared);
+
+            // لينك التنزيل من غير فيديو ملوش معنى: لازم يكون فيه لينك يوتيوب (جديد أو موجود ومش بيتشال).
+            $finalHasVideo = $newVideo || (filled($product->video_url) && ! $removeVideo);
+            if (! $finalHasVideo && $request->filled('video_download_url')) {
+                throw ValidationException::withMessages(['video_url' => 'أضف لينك يوتيوب أولاً، أو امسح لينك التنزيل.']);
+            }
+
+            // إجمالي صور المعرض بعد الإضافة لا يزيد عن 10.
+            $newImages = count((array) $request->file('images', []));
+            if ($newImages && $product->images()->count() + $newImages > 10) {
+                throw ValidationException::withMessages(['images' => 'معرض الصور لا يزيد عن 10 صور. احذف بعض الصور القديمة أولاً.']);
+            }
             $galleryPaths = [];
             foreach ((array) $request->file('images', []) as $file) {
                 $uploaded[] = $galleryPaths[] = $this->mediaService->uploadAndOptimizeImage($file, 'products/gallery');
@@ -340,11 +368,16 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'تم حذف المنتج وملفاته ومتغيراته بنجاح.');
     }
 
-    public function destroyImage(ProductImage $image)
+    public function destroyImage(Request $request, ProductImage $image)
     {
         $path = $image->image_path;
         $image->delete();
         $this->mediaService->deleteFile($path);
+
+        // الزرار في مودال التعديل بيبعت fetch (من غير ما يقفل المودال أو يعيد تحميل الصفحة).
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true]);
+        }
 
         return back()->with('success', 'تم حذف الصورة من المعرض بنجاح.');
     }

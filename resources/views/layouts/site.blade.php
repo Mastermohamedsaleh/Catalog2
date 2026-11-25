@@ -67,7 +67,7 @@
 <div class="d-flex gap-2 align-items-center">
     @auth
         @if((isset(auth()->user()->is_admin) && auth()->user()->is_admin)) 
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-sm">Dashboard</a>
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-sm">My Dashboard</a>
         @endif
         
         <form action="{{ route('logout') }}" method="POST" class="d-inline mb-0">

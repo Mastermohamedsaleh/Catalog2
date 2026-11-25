@@ -77,6 +77,7 @@
                         <td>{{ $customer->created_at->format('Y-m-d') }}</td>
                         
                         <td class="text-end text-nowrap">
+                            @if(auth()->user()->isSuperAdmin())
                             <!-- زرار تصفير الخزنة / سحب الأرباح -->
                             <form action="{{ route('admin.customers.zeroWallet', $customer->id) }}" method="POST" class="d-inline zero-wallet-form">
                                 @csrf
@@ -84,6 +85,7 @@
                                     <i class="bi bi-cash-coin"></i> Zero Wallet
                                 </button>
                             </form>
+                            @endif
 
                             <!-- زرار إعادة تعيين كلمة السر -->
                             <form action="{{ route('admin.customers.resetPassword', $customer->id) }}" method="POST" class="d-inline reset-form">
@@ -93,6 +95,7 @@
                                 </button>
                             </form>
 
+                            @if(auth()->user()->isSuperAdmin())
                             <!-- زرار الحذف -->
                             <form action="{{ route('admin.customers.destroy', $customer->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
@@ -101,6 +104,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
+                            @endif
                         </td>
                     </tr>
                 @empty

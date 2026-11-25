@@ -45,8 +45,8 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
 
     Route::post('/customers/{customer}/reset-password', [CustomerController::class, 'resetPassword'])->name('customers.resetPassword');
 
-    // مسارات العملاء (عرض وحذف)
-    Route::resource('customers', CustomerController::class)->only(['index', 'destroy']);
+    // مسارات العملاء: العرض للأدمن العادي. الحذف وتصفير المحفظة للسوبر أدمن بس (أسفل في مجموعة super).
+    Route::resource('customers', CustomerController::class)->only(['index']);
 
     Route::resource('products', ProductController::class)->except(['create', 'show', 'edit']);
 
@@ -61,13 +61,15 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
 
     // تم تصحيح الـ Name هنا ليكون صحيحاً بدون تكرار admin.
     Route::put('/orders/{order}/reason', [OrderController::class, 'updateReason'])->name('orders.updateReason');
-
-    Route::post('/customers/{customer}/zero-wallet', [CustomerController::class, 'zeroWallet'])->name('customers.zeroWallet');
 });
 
 // مسارات السوبر أدمن فقط
 Route::middleware(['auth', SuperAdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('admins', AdminUserController::class)->except(['create', 'show', 'edit']);
+
+    // الحاجات الحساسة (فلوس وحذف حسابات): السوبر أدمن بس. الأدمن العادي يشوف العملاء ويعيد تعيين كلمة السر فقط.
+    Route::post('/customers/{customer}/zero-wallet', [CustomerController::class, 'zeroWallet'])->name('customers.zeroWallet');
+    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 });
 
 // Frontend

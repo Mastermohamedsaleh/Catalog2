@@ -9,9 +9,9 @@
     <div class="p-3 p-lg-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
         <h2 class="h6 fw-bold mb-0">All Products</h2>
         
-        <!-- فورم البحث المباشر بالاسم أو الـ SKU -->
+        <!-- فورم البحث المباشر بالاسم أو الكود -->
         <form action="{{ route('admin.products.index') }}" method="GET" class="d-flex gap-2 w-100 w-md-auto" style="max-width: 350px;">
-            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by name, SKU..." value="{{ request('search') }}">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by name or code..." value="{{ request('search') }}">
             <button type="submit" class="btn btn-outline-secondary btn-sm text-nowrap"><i class="bi bi-search"></i></button>
             @if(request('search'))
                 <a href="{{ route('admin.products.index') }}" class="btn btn-outline-danger btn-sm" title="Clear Search"><i class="bi bi-x-lg"></i></a>
@@ -47,7 +47,7 @@
                 <tr>
                     <th>#</th>
                     <th>Image</th>
-                    <th>SKU (الكود)</th>
+                    <th>Code</th>
                     <th>Video Preview</th>
                     <th>Product Name</th>
                     <th>Category</th>
@@ -73,7 +73,7 @@
                             @endif
                         </td>
 
-                        <!-- كود المنتج SKU -->
+                        <!-- كود المنتج -->
                         <td>
                             <span class="badge bg-dark font-monospace">{{ $product->sku ?? 'N/A' }}</span>
                         </td>
@@ -173,14 +173,14 @@
       </div>
       <div class="modal-body text-start">
         
-        <!-- اسم المنتج والكود SKU -->
+        <!-- اسم المنتج والكود -->
         <div class="row">
             <div class="col-md-8 mb-3">
               <label class="form-label small fw-semibold">Product Name <span class="text-danger">*</span></label>
               <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" placeholder="Enter product name" required>
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label small fw-semibold">Product SKU (كود المنتج)</label>
+              <label class="form-label small fw-semibold">Product code</label>
               <input type="text" class="form-control @error('sku') is-invalid @enderror" name="sku" value="{{ old('sku') }}" placeholder="اختياري (يولد تلقائياً)">
             </div>
         </div>
@@ -295,14 +295,14 @@
 
       <div class="modal-body text-start">
         
-        <!-- اسم المنتج والكود SKU -->
+        <!-- اسم المنتج والكود -->
         <div class="row">
             <div class="col-md-8 mb-3">
               <label class="form-label small fw-semibold">Product Name <span class="text-danger">*</span></label>
               <input type="text" class="form-control" name="name" value="{{ $product->name }}" required>
             </div>
             <div class="col-md-4 mb-3">
-              <label class="form-label small fw-semibold">Product SKU (كود المنتج)</label>
+              <label class="form-label small fw-semibold">Product code</label>
               <input type="text" class="form-control font-monospace" name="sku" value="{{ $product->sku }}">
             </div>
         </div>
@@ -350,8 +350,12 @@
           @if($product->images->count() > 0)
               <div class="d-flex flex-wrap gap-2 mb-2 p-2 bg-light rounded border">
                   @foreach($product->images as $img)
-                      <div class="position-relative border rounded p-1 bg-white" style="width: 60px; height: 60px;">
-                          <img src="{{ asset('storage/' . $img->image_path) }}" class="rounded w-100 h-100" style="object-fit: cover;">
+                      <div class="position-relative border rounded p-1 bg-white js-gallery-item" style="width: 70px; height: 70px;">
+                          <img src="{{ asset('storage/' . $img->image_path) }}" class="rounded w-100 h-100" style="object-fit: cover;" alt="">
+                          <!-- حذف الصورة فوراً (fetch) من غير ما نقفل المودال. type=button عشان مايعملش submit للفورم -->
+                          <button type="button" class="btn btn-danger btn-sm position-absolute top-0 start-100 translate-middle rounded-circle p-0 js-delete-gallery-image"
+                                  style="width: 20px; height: 20px; line-height: 1; font-size: 12px;"
+                                  data-url="{{ route('admin.products.images.destroy', $img->id) }}" title="Delete this image" aria-label="Delete image">&times;</button>
                       </div>
                   @endforeach
               </div>
@@ -437,6 +441,47 @@
     </form>
   </div>
 </div>
+@endforeach
+
+<!-- مودالات معرض الصور: carousel فيه الصورة الرئيسية + صور المعرض. (الزرار "معرض الصور" كان بيشاور على مودال مش موجود فمكانش بيفتح) -->
+@foreach($products as $product)
+  @if($product->main_image || $product->images->count() > 0)
+  @php
+      $slides = collect([$product->main_image])->filter()->merge($product->images->pluck('image_path'))->values();
+  @endphp
+  <div class="modal fade" id="galleryModal{{ $product->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-white">{{ $product->name }} <small class="opacity-75">({{ $slides->count() }} images)</small></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <div id="galleryCarousel{{ $product->id }}" class="carousel slide" data-bs-ride="false">
+            @if($slides->count() > 1)
+            <div class="carousel-indicators">
+              @foreach($slides as $i => $path)
+                <button type="button" data-bs-target="#galleryCarousel{{ $product->id }}" data-bs-slide-to="{{ $i }}" class="{{ $i === 0 ? 'active' : '' }}" aria-label="Image {{ $i + 1 }}"></button>
+              @endforeach
+            </div>
+            @endif
+            <div class="carousel-inner rounded-3">
+              @foreach($slides as $i => $path)
+                <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
+                  <img src="{{ asset('storage/' . $path) }}" class="d-block mx-auto" style="max-height: 70vh; max-width: 100%; object-fit: contain;" alt="{{ $product->name }} {{ $i + 1 }}" loading="lazy">
+                </div>
+              @endforeach
+            </div>
+            @if($slides->count() > 1)
+              <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel{{ $product->id }}" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span></button>
+              <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel{{ $product->id }}" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span></button>
+            @endif
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
 @endforeach
 
 <div class="modal fade" id="videoPreviewModal" tabindex="-1" aria-hidden="true">
@@ -569,6 +614,63 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.closest('.remove-edit-variant')) {
             e.target.closest('.edit-variant-row').remove();
         }
+    });
+});
+</script>
+<script>
+// معاينة الصور قبل الحفظ + فحص الحجم/النوع/العدد في المتصفح، وحذف صورة من المعرض بدون إعادة تحميل.
+document.addEventListener('DOMContentLoaded', function () {
+    const MAX_MB = 2, MAX_FILES = 10, TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    document.querySelectorAll('input[type=file][name="main_image"], input[type=file][name="images[]"]').forEach(function (input) {
+        const holder = document.createElement('div');
+        holder.className = 'd-flex flex-wrap gap-2 mt-2';
+        const msg = document.createElement('div');
+        msg.className = 'text-danger small mt-1';
+        input.insertAdjacentElement('afterend', msg);
+        input.insertAdjacentElement('afterend', holder);
+
+        input.addEventListener('change', function () {
+            holder.innerHTML = ''; msg.textContent = '';
+            const files = Array.from(input.files || []);
+            if (input.multiple && files.length > MAX_FILES) { msg.textContent = 'الحد الأقصى ' + MAX_FILES + ' صور.'; input.value = ''; return; }
+            for (const f of files) {
+                if (!TYPES.includes(f.type)) { msg.textContent = '"' + f.name + '" ليست صورة مدعومة (JPG / PNG / WEBP).'; input.value = ''; holder.innerHTML = ''; return; }
+                if (f.size > MAX_MB * 1024 * 1024) { msg.textContent = '"' + f.name + '" أكبر من ' + MAX_MB + ' ميجا.'; input.value = ''; holder.innerHTML = ''; return; }
+            }
+            files.forEach(function (f) {
+                const box = document.createElement('div');
+                box.className = 'border rounded p-1 bg-white text-center';
+                box.style.width = '84px';
+                const img = document.createElement('img');
+                img.className = 'rounded';
+                img.style.cssText = 'width:100%;height:70px;object-fit:cover;cursor:zoom-in';
+                img.alt = f.name;
+                img.src = URL.createObjectURL(f);
+                img.onload = function () { URL.revokeObjectURL(img.src); };
+                img.addEventListener('click', function () { window.open(URL.createObjectURL(f), '_blank'); });
+                const cap = document.createElement('div');
+                cap.className = 'text-muted text-truncate';
+                cap.style.fontSize = '10px';
+                cap.textContent = f.name;
+                box.append(img, cap);
+                holder.appendChild(box);
+            });
+        });
+    });
+
+    document.querySelectorAll('.js-delete-gallery-image').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('حذف هذه الصورة نهائياً؟')) return;
+            btn.disabled = true;
+            fetch(btn.dataset.url, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+            }).then(function (r) {
+                if (!r.ok) throw new Error('failed');
+                btn.closest('.js-gallery-item').remove();
+            }).catch(function () { btn.disabled = false; alert('تعذر حذف الصورة، حاول مرة أخرى.'); });
+        });
     });
 });
 </script>

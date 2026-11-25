@@ -28,9 +28,9 @@
       <div class="d-flex gap-2">
         @auth
     @if(Auth::user()->isAdmin())
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">Dashboard</a>
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">My Dashboard</a>
     @else
-        <a href="{{ route('merchant.orders.index') }}" class="btn btn-primary">Dashboard</a>
+        <a href="{{ route('merchant.orders.index') }}" class="btn btn-primary">My Dashboard</a>
     @endif
 @else
    <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">Sign in</a>
@@ -99,7 +99,7 @@
       @endif
       <h1 class="fw-bold mb-2">{{ $product->name }}</h1>
       @if($product->sku)
-          <div class="text-muted small mb-2">Product code (SKU): <span class="fw-semibold text-dark user-select-all" dir="ltr">{{ $product->sku }}</span></div>
+          <div class="text-muted small mb-2">Product code: <span class="fw-semibold text-dark user-select-all" dir="ltr">{{ $product->sku }}</span></div>
       @endif
       <div class="h2 price mb-1">{{ $product->price }} {{ config('shop.currency') }}</div>
       @if($product->variants->contains(fn ($v) => (float) $v->price_modifier != 0))

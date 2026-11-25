@@ -20,9 +20,9 @@
     <div class="d-flex gap-2">
            @auth
     @if(Auth::user()->isAdmin())
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">Dashboard</a>
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">My Dashboard</a>
     @else
-        <a href="{{ route('merchant.orders.index') }}" class="btn btn-primary">Dashboard</a>
+        <a href="{{ route('merchant.orders.index') }}" class="btn btn-primary">My Dashboard</a>
     @endif
 @else
    <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">Sign in</a>

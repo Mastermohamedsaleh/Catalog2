@@ -60,15 +60,27 @@
       <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <!-- Name -->
-        <div class="mb-3">
-          <label for="name" class="form-label small fw-semibold">Full name</label>
-          <div class="input-icon">
-            <i class="bi bi-person"></i>
-            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Jane Doe" required autocomplete="name" autofocus>
-            @error('name')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
+        <!-- First & last name: حقلين منفصلين، وبيتحفظوا في عمود name كـ "First Last" -->
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">
+            <label for="first_name" class="form-label small fw-semibold">First name</label>
+            <div class="input-icon">
+              <i class="bi bi-person"></i>
+              <input type="text" class="form-control @error('first_name') is-invalid @enderror" id="first_name" name="first_name" value="{{ old('first_name') }}" placeholder="Jane" required minlength="2" maxlength="50" autocomplete="given-name" autofocus>
+              @error('first_name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label for="last_name" class="form-label small fw-semibold">Last name</label>
+            <div class="input-icon">
+              <i class="bi bi-person"></i>
+              <input type="text" class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}" placeholder="Doe" required minlength="2" maxlength="50" autocomplete="family-name">
+              @error('last_name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
           </div>
         </div>
 

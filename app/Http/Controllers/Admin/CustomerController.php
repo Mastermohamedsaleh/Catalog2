@@ -50,6 +50,7 @@ class CustomerController extends Controller
      */
     public function zeroWallet(User $customer)
     {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403); // فلوس: سوبر أدمن بس (حماية فوق الـ middleware)
         $this->ensureManageable($customer);
 
         try {
@@ -102,6 +103,7 @@ class CustomerController extends Controller
 
     public function destroy(User $customer)
     {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403); // حذف حسابات: سوبر أدمن بس
         $this->ensureManageable($customer);
 
         if ($customer->id === auth()->id()) {

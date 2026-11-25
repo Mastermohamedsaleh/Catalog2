@@ -181,7 +181,6 @@
       @foreach([
         ['Do I need experience?', "No. Dropshipping needs no stock and no shipping work: pick products, send us your customer's order, and we deliver."],
         ['How much is delivery?', 'A flat ' . number_format(config('shop.delivery_fee'), 0) . ' ' . config('shop.currency') . ' per order, charged to the customer on top of the product price. It is separate from the product price and is not part of your profit.'],
-        ['How do I get paid?', 'In EGP, 3 times a month: the 1st, 10th and 20th.'],
         ['Who handles shipping?', 'Our shipping partner, delivering the next day.'],
         ['Who sets my selling price?', 'You add your margin, and we recommend the best price for each product.'],
       ] as $i => [$q, $a])
@@ -193,37 +192,14 @@
     </div>
   </section>
 
-  <!-- ============ CONTACT & LOCATION ============ -->
+  <!-- ============ CONTACT (من غير خريطة ولا فورم) ============ -->
   <section id="contact" class="container sec pt-0">
     <div class="text-center mb-5"><span class="eyebrow">Contact us</span><h2 class="fw-bold mb-2">Get in touch</h2><p class="text-muted mb-0">Questions? Our team is here to help.</p></div>
-    <div class="row g-4">
-      <div class="col-lg-5 d-flex flex-column gap-3">
-        <a class="contact-item" href="tel:+{{ config('shop.phone') }}"><div class="feature-icon"><i class="bi bi-telephone-fill"></i></div><div><div class="fw-bold">Phone</div><div class="text-muted small">{{ \App\Support\Phone::display(config('shop.phone')) }}</div></div></a>
-        <a class="contact-item" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener"><div class="feature-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-whatsapp"></i></div><div><div class="fw-bold">WhatsApp</div><div class="text-muted small">Chat with us instantly</div></div></a>
-        <a class="contact-item" href="mailto:{{ config('shop.email') }}"><div class="feature-icon"><i class="bi bi-envelope-fill"></i></div><div><div class="fw-bold">Email</div><div class="text-muted small">{{ config('shop.email') }}</div></div></a>
-        <div class="contact-item"><div class="feature-icon"><i class="bi bi-geo-alt-fill"></i></div><div><div class="fw-bold">Address</div><div class="text-muted small">{{ config('shop.address') }}</div></div></div>
-        <div class="contact-item"><div class="feature-icon"><i class="bi bi-clock-fill"></i></div><div><div class="fw-bold">Working hours</div><div class="text-muted small">{!! nl2br(e(config('shop.hours'))) !!}</div></div></div>
-      </div>
-      <div class="col-lg-7">
-        <div class="row g-4">
-          <div class="col-12" style="min-height:300px">
-            <iframe class="map-frame shadow-sm" title="Our location" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              src="https://maps.google.com/maps?q={{ rawurlencode(config('shop.map_query')) }}&output=embed"></iframe>
-          </div>
-          <div class="col-12">
-            {{-- الفورم ده بيفتح واتساب برسالة جاهزة (القديم كان بيظهر "تم الإرسال" من غير ما يبعت حاجة فعلياً) --}}
-            <form class="card-soft p-3 p-lg-4" id="waForm" data-wa="{{ config('shop.whatsapp') }}">
-              <h3 class="h5 fw-bold mb-3">Send us a message</h3>
-              <div class="row g-3">
-                <div class="col-sm-6"><label class="form-label small fw-semibold" for="cName">Name</label><input class="form-control" id="cName" required minlength="2" placeholder="Your name"></div>
-                <div class="col-sm-6"><label class="form-label small fw-semibold" for="cPhone">Phone</label><input class="form-control" id="cPhone" type="tel" placeholder="+20 1X XXXX XXXX"></div>
-                <div class="col-12"><label class="form-label small fw-semibold" for="cMsg">Message</label><textarea class="form-control" id="cMsg" rows="3" required placeholder="How can we help?"></textarea></div>
-                <div class="col-12"><button class="btn btn-primary px-4" type="submit"><i class="bi bi-whatsapp me-2"></i>Send on WhatsApp</button></div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+    <div class="row g-3 justify-content-center">
+      <div class="col-md-6 col-lg-4"><a class="contact-item" href="tel:+{{ config('shop.phone') }}"><div class="feature-icon"><i class="bi bi-telephone-fill"></i></div><div><div class="fw-bold">Phone</div><div class="text-muted small">{{ \App\Support\Phone::display(config('shop.phone')) }}</div></div></a></div>
+      <div class="col-md-6 col-lg-4"><a class="contact-item" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener"><div class="feature-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-whatsapp"></i></div><div><div class="fw-bold">WhatsApp</div><div class="text-muted small">Chat with us instantly</div></div></a></div>
+      <div class="col-md-6 col-lg-4"><a class="contact-item" href="mailto:{{ config('shop.email') }}"><div class="feature-icon"><i class="bi bi-envelope-fill"></i></div><div><div class="fw-bold">Email</div><div class="text-muted small">{{ config('shop.email') }}</div></div></a></div>
+      <div class="col-md-6 col-lg-4"><div class="contact-item"><div class="feature-icon"><i class="bi bi-clock-fill"></i></div><div><div class="fw-bold">Working hours</div><div class="text-muted small">{!! nl2br(e(config('shop.hours'))) !!}</div></div></div></div>
     </div>
   </section>
 </main>
@@ -246,15 +222,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- ربط ملف الـ JS الخاص بالمشروع بطريقة لارافيل -->
 <script src="{{ asset('assets/js/app.js') }}"></script>
-<script>
-  // يفتح واتساب برسالة جاهزة من بيانات الفورم
-  document.getElementById('waForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var f = e.currentTarget;
-    if (!f.reportValidity()) return;
-    var text = 'Hello AksSap, I am ' + f.cName.value.trim() + (f.cPhone.value.trim() ? ' (' + f.cPhone.value.trim() + ')' : '') + '.\n' + f.cMsg.value.trim();
-    window.open('https://wa.me/' + f.dataset.wa + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
-  });
-</script>
+
 </body>
 </html>

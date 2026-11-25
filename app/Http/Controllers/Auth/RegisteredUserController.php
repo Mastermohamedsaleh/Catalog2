@@ -35,8 +35,17 @@ class RegisteredUserController extends Controller
         // من غير ده نفس الشخص يقدر يسجّل مرتين بأشكال مختلفة و"unique" مش هيمسكه.
         $request->merge(['phone' => Phone::normalize($request->input('phone'))]);
 
+        // الاسم الأول والأخير: نشيل المسافات الزيادة، وبعدين نتحقق إنهم حروف بس (عربي أو إنجليزي) من غير أرقام أو رموز.
+        $request->merge([
+            'first_name' => preg_replace('/\s+/u', ' ', trim((string) $request->input('first_name'))),
+            'last_name'  => preg_replace('/\s+/u', ' ', trim((string) $request->input('last_name'))),
+        ]);
+
+        $nameRule = ['required', 'string', 'min:2', 'max:50', "regex:/^[\p{L}\p{M}][\p{L}\p{M} .'’\-]*$/u"];
+
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => $nameRule,
+            'last_name'  => $nameRule,
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'phone' => ['required', 'string', Phone::rule(), 'unique:'.User::class],
             'password' => [
@@ -47,13 +56,19 @@ class RegisteredUserController extends Controller
                     ->numbers()
             ],
         ], [
+            'first_name.required' => 'Please enter your first name.',
+            'first_name.min'      => 'First name must be at least 2 letters.',
+            'first_name.regex'    => 'First name can only contain letters.',
+            'last_name.required'  => 'Please enter your last name.',
+            'last_name.min'       => 'Last name must be at least 2 letters.',
+            'last_name.regex'     => 'Last name can only contain letters.',
             'phone.required' => 'رقم الهاتف مطلوب.',
             'phone.regex'    => Phone::message(),
             'phone.unique'   => 'رقم الهاتف مستخدم من قبل، يرجى استخدام رقم آخر.',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'name' => $request->first_name . ' ' . $request->last_name,
             'email' => $request->email,
             'phone' => $request->phone, // محفوظ بالصيغة الموحدة 05XXXXXXXX
             'password' => Hash::make($request->password),

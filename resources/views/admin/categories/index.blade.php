@@ -134,7 +134,7 @@
                     <label class="form-label small fw-semibold">Parent Category</label>
                     <select name="parent_id" class="form-control @error('parent_id') is-invalid @enderror">
                         <option value="">-- Main Category (No Parent) --</option>
-                        @foreach(\App\Models\Category::whereNull('parent_id')->where('id', '!=', $category->id)->get() as $mainCat)
+                        @foreach($rootCategories->where('id', '!=', $category->id) as $mainCat)
                             <option value="{{ $mainCat->id }}" {{ old('parent_id', $category->parent_id) == $mainCat->id ? 'selected' : '' }}>
                                 {{ $mainCat->name }}
                             </option>
@@ -207,7 +207,7 @@
           <label class="form-label small fw-semibold">Parent Category (Optional)</label>
           <select name="parent_id" class="form-control @error('parent_id') is-invalid @enderror">
               <option value="">-- Main Category (No Parent) --</option>
-              @foreach(\App\Models\Category::whereNull('parent_id')->get() as $mainCat)
+              @foreach($rootCategories as $mainCat)
                   <option value="{{ $mainCat->id }}" {{ old('parent_id') == $mainCat->id ? 'selected' : '' }}>{{ $mainCat->name }}</option>
               @endforeach
           </select>

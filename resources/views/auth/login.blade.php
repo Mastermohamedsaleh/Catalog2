@@ -51,7 +51,7 @@
       <ul class="list-unstyled opacity-75 mb-0">
         <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>Premium products at prices no one else matches</li>
         <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>You set your own commission</li>
-        <li><i class="bi bi-check2-circle me-2"></i>Paid in EGP on the 1st, 10th and 20th</li>
+        <li><i class="bi bi-headset me-2"></i>Any problem or forgot your password? Contact us on <a class="text-white fw-semibold" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener">{{ \App\Support\Phone::display(config('shop.phone')) }}</a></li>
       </ul>
     </div>
   </section>

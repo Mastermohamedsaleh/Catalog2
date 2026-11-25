@@ -12,10 +12,15 @@
             @else
                 <span class="badge badge-soft-warning"><i class="bi bi-hdd me-1"></i>Old local file</span>
             @endif
-            <div class="form-check mb-0">
-                <input class="form-check-input" type="checkbox" name="remove_video" value="1" id="rm{{ $uid }}">
-                <label class="form-check-label text-danger" for="rm{{ $uid }}">Remove current video</label>
-            </div>
+            @unless($currentYoutube)
+                {{-- الـ checkbox ده للملف القديم بس. لينك يوتيوب بيتشال بمسح الحقل تحت. --}}
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="remove_video" value="1" id="rm{{ $uid }}">
+                    <label class="form-check-label text-danger" for="rm{{ $uid }}">Delete old file</label>
+                </div>
+            @else
+                <span class="text-muted">لإزالة الفيديو امسح اللينك من الحقل وأحفظ.</span>
+            @endunless
         </div>
     @endif
 
