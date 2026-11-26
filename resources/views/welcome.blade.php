@@ -199,7 +199,12 @@
       <div class="col-md-6 col-lg-4"><a class="contact-item" href="tel:+{{ config('shop.phone') }}"><div class="feature-icon"><i class="bi bi-telephone-fill"></i></div><div><div class="fw-bold">Phone</div><div class="text-muted small">{{ \App\Support\Phone::display(config('shop.phone')) }}</div></div></a></div>
       <div class="col-md-6 col-lg-4"><a class="contact-item" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener"><div class="feature-icon" style="background:#dcfce7;color:#16a34a"><i class="bi bi-whatsapp"></i></div><div><div class="fw-bold">WhatsApp</div><div class="text-muted small">Chat with us instantly</div></div></a></div>
       <div class="col-md-6 col-lg-4"><a class="contact-item" href="mailto:{{ config('shop.email') }}"><div class="feature-icon"><i class="bi bi-envelope-fill"></i></div><div><div class="fw-bold">Email</div><div class="text-muted small">{{ config('shop.email') }}</div></div></a></div>
+      @if(filled(config('shop.address')))
+      <div class="col-md-6 col-lg-4"><div class="contact-item"><div class="feature-icon"><i class="bi bi-geo-alt-fill"></i></div><div><div class="fw-bold">Address</div><div class="text-muted small">{{ config('shop.address') }}</div></div></div></div>
+      @endif
+      @if(filled(config('shop.hours')))
       <div class="col-md-6 col-lg-4"><div class="contact-item"><div class="feature-icon"><i class="bi bi-clock-fill"></i></div><div><div class="fw-bold">Working hours</div><div class="text-muted small">{!! nl2br(e(config('shop.hours'))) !!}</div></div></div></div>
+      @endif
     </div>
   </section>
 </main>
@@ -211,7 +216,7 @@
       <div class="col-lg-4"><div class="fs-5 fw-bold text-white mb-2"><img src="{{ asset('assets/img/logo.png') }}" alt="AksSap logo" class="brand-logo"><span>Aks<span class="brand-accent">Sap</span></span></div><p class="small mb-0">Dropshipping platform for the UAE market: premium products, your own price, paid 3 times a month.</p></div>
       <div class="col-6 col-lg-2"><div class="text-white fw-semibold mb-2">Links</div><ul class="list-unstyled small mb-0"><li><a class="text-reset" href="#about">About us</a></li><li><a class="text-reset" href="#services">Why AksSap</a></li><li><a class="text-reset" href="#categories">Products</a></li><li><a class="text-reset" href="#contact">Contact us</a></li></ul></div>
       <div class="col-6 col-lg-3"><div class="text-white fw-semibold mb-2">Contact</div><ul class="list-unstyled small mb-0"><li><i class="bi bi-telephone me-2"></i>{{ \App\Support\Phone::display(config('shop.phone')) }}</li><li><i class="bi bi-envelope me-2"></i>{{ config('shop.email') }}</li><li><i class="bi bi-geo-alt me-2"></i>{{ config('shop.city') }}</li></ul></div>
-      <div class="col-lg-3"><div class="text-white fw-semibold mb-2">Chat with us</div><div class="d-flex gap-3 fs-5"><a class="text-reset" href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a></div></div>
+      <div class="col-lg-3"><div class="text-white fw-semibold mb-2">Follow &amp; chat with us</div>@include('partials.social-links')</div>
     </div>
   </div>
 </footer>

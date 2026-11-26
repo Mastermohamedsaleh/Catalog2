@@ -103,9 +103,7 @@
                     <a href="{{ route('admin.products.index', ['add' => 1]) }}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-lg me-1"></i>Add product
                     </a>
-                    <button type="button" class="btn btn-light" onclick="showToast('Cache cleared successfully', 'info')">
-                        <i class="bi bi-arrow-repeat me-1"></i>Clear cache
-                    </button>
+           
                 </div>
             </div>
         </div>

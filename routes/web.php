@@ -18,8 +18,8 @@ Route::get('/', [FrontendController::class, 'welcome'])->name('catalog.index');
 Route::middleware('auth')->group(function () {
     // /profile just sends each user to the page that matches their role
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:10,1')->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->middleware('throttle:5,1')->name('profile.destroy');
+    Route::patch('/profile', [ProfileController::class, 'update'])->middleware('throttle:10,1,profile.update')->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->middleware('throttle:5,1,profile.destroy')->name('profile.destroy');
     Route::get('/merchant/profile', [ProfileController::class, 'merchant'])->name('merchant.profile');
 });
 
@@ -36,7 +36,7 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     // بيستخدم نفس كنترولر تغيير الباسورد الأساسي (فيه التحقق من الباسورد الحالي وتأكيد الباسورد الجديد).
     // بيقبل PUT و POST عشان الفورم يشتغل سواء فيه @method('PUT') أو من غيره.
     Route::match(['put', 'post'], '/profile/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])
-        ->middleware('throttle:6,1')->name('profile.updatePassword');
+        ->middleware('throttle:6,1,profile.updatePassword')->name('profile.updatePassword');
     
     // استثنينا الـ show من الـ resource عشان نعمله بشكل صريح ومضبوط بالـ admin prefix
     Route::resource('categories', CategoryController::class)
@@ -86,12 +86,12 @@ Route::middleware(['auth'])->group(function () {
 // Merchant Routes
 Route::middleware(['auth'])->prefix('merchant')->name('merchant.')->group(function () {
     Route::get('/orders', [App\Http\Controllers\Merchant\OrderController::class, 'index'])->name('orders.index');
-    Route::post('/orders', [App\Http\Controllers\Merchant\OrderController::class, 'store'])->middleware('throttle:20,1')->name('orders.store');
-    Route::get('/products-search', [App\Http\Controllers\Merchant\OrderController::class, 'searchProducts'])->middleware('throttle:60,1')->name('products.search');
-    Route::post('/orders/{order}/cancel', [App\Http\Controllers\Merchant\OrderController::class, 'cancel'])->middleware('throttle:20,1')->name('orders.cancel');
+    Route::post('/orders', [App\Http\Controllers\Merchant\OrderController::class, 'store'])->middleware('throttle:20,1,orders.store')->name('orders.store');
+    Route::get('/products-search', [App\Http\Controllers\Merchant\OrderController::class, 'searchProducts'])->middleware('throttle:60,1,products.search')->name('products.search');
+    Route::post('/orders/{order}/cancel', [App\Http\Controllers\Merchant\OrderController::class, 'cancel'])->middleware('throttle:20,1,orders.cancel')->name('orders.cancel');
 
     Route::get('/wallet', [App\Http\Controllers\Merchant\WalletController::class, 'index'])->name('wallet');
-    Route::post('/wallet/withdraw', [App\Http\Controllers\Merchant\WalletController::class, 'withdraw'])->middleware('throttle:5,1')->name('wallet.withdraw');
+    Route::post('/wallet/withdraw', [App\Http\Controllers\Merchant\WalletController::class, 'withdraw'])->middleware('throttle:5,1,wallet.withdraw')->name('wallet.withdraw');
 });
 
 require __DIR__.'/auth.php';

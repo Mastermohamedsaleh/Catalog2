@@ -11,9 +11,12 @@
         </div>
         <div class="col-md-6">
             <label class="form-label small fw-semibold" for="p_phone">Phone number</label>
-            <input id="p_phone" name="phone" type="tel" maxlength="20" required autocomplete="tel" dir="ltr" placeholder="0501234567"
-                   class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}">
-            @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            <div class="input-icon has-flag">
+                @include('partials.uae-flag')
+                <input id="p_phone" name="phone" type="tel" maxlength="20" required autocomplete="tel" dir="ltr" placeholder="Enter your phone number, e.g. 0501234567"
+                       class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}">
+                @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
         </div>
         <div class="col-12">
             <label class="form-label small fw-semibold" for="p_email">Email</label>

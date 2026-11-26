@@ -7,37 +7,48 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
+/**
+ * بيعمل السوبر أدمن الأول مرة واحدة بس. لو الحساب موجود مبيتلمسش (يعني إعادة التشغيل مش هتصفّر باسورده).
+ *
+ * البيانات من الـ .env (بتتقرا من config/shop.php عشان تشتغل حتى بعد config:cache):
+ *   ADMIN_SEED_EMAIL     إيميل الدخول (لو فاضي بيستخدم SHOP_EMAIL)
+ *   ADMIN_SEED_PASSWORD  الباسورد. لو فاضي بيتولّد باسورد عشوائي ويتطبع مرة واحدة في الـ terminal.
+ *   ADMIN_SEED_NAME      الاسم (اختياري)
+ * مفيش باسورد افتراضي نهائياً. بعد أول دخول غيّر الباسورد وامسح ADMIN_SEED_PASSWORD من .env.
+ */
 class AdminUserSeeder extends Seeder
 {
-    /**
-     * Creates the first super admin ONCE (an existing account is never touched, so
-     * re-running the seeder cannot reset its password).
-     *
-     * Set ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD in .env. If no password is given, a
-     * random one is generated and printed a single time. There is no default password.
-     */
     public function run(): void
     {
-        $email = env('ADMIN_SEED_EMAIL', 'sec_master@catalogpro.com');
+        $cfg   = config('shop.super_admin');
+        $email = strtolower(trim((string) ($cfg['email'] ?: config('shop.email'))));
+
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->command?->error('Set ADMIN_SEED_EMAIL (or SHOP_EMAIL) in .env to a valid email first.');
+            return;
+        }
 
         if (User::where('email', $email)->exists()) {
             $this->command?->info("Super admin {$email} already exists, left unchanged.");
             return;
         }
 
-        $password = env('ADMIN_SEED_PASSWORD') ?: Str::password(20, symbols: false);
+        $password = $cfg['password'] ?: Str::password(20, symbols: false);
 
-        User::create([
-            'name'              => 'System Master',
+        // forceFill: بنحدد الصلاحيات صراحةً هنا بدل ما نعتمد على $fillable.
+        $user = new User();
+        $user->forceFill([
+            'name'              => $cfg['name'] ?: 'Super Admin',
             'email'             => $email,
             'password'          => Hash::make($password),
             'role'              => 'catalog_master_root',
             'is_super'          => true,
             'email_verified_at' => now(),
-        ]);
+        ])->save();
 
-        if (! env('ADMIN_SEED_PASSWORD')) {
-            $this->command?->warn("Super admin created: {$email}  password: {$password}  (shown once, change it after login)");
+        $this->command?->info("Super admin created: {$email}");
+        if (! $cfg['password']) {
+            $this->command?->warn("Generated password (shown ONCE, change it after login): {$password}");
         }
     }
 }

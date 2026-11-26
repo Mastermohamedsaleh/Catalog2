@@ -7,7 +7,7 @@
 | كل حاجة بتتغير من الـ .env من غير ما تلمس أي صفحة:
 |   SHOP_CURRENCY   العملة اللي بتظهر جنب كل سعر في الموقع (الدرهم الإماراتي AED).
 |   SHOP_PHONE      رقم التليفون بالصيغة الدولية من غير + ولا مسافات (971501234567).
-|   (مؤقت) الرقم والعنوان والمواعيد قيم تجريبية لحد ما تجيب البيانات الحقيقية وتحطها في .env
+|   رقم المتجر الحقيقي (واتساب/اتصال/تليجرام) 201032480013 = 01032480013 مصري. العنوان لسه فاضي لحد ما يتحدد.
 |   SHOP_WHATSAPP   رقم الواتساب بنفس الصيغة. لو سبته فاضي بيستخدم نفس رقم التليفون.
 |
 | ملحوظة: الأسعار بتتخزن في الداتابيز بأرقام عشرية (خانتين) وده مناسب للدرهم لأنه بيتقسم لـ 100 فلس.
@@ -16,15 +16,32 @@
 return [
     'currency' => env('SHOP_CURRENCY', 'AED'),
 
-    'phone'    => env('SHOP_PHONE', '971501234567'),
-    'whatsapp' => env('SHOP_WHATSAPP') ?: env('SHOP_PHONE', '971501234567'),
-    'email'    => env('SHOP_EMAIL', 'info@example.com'),
+    /*
+    | بيانات التواصل الحقيقية مكتوبة هنا مباشرة (مش من .env) عن قصد:
+    | لو ملف .env على جهازك أو السيرفر فيه SHOP_PHONE / SHOP_EMAIL قديمة، كانت بتغلب أي قيمة جديدة
+    | وده سبب ظهور الرقم والإيميل الوهميين. دلوقتي أي حاجة في .env بخصوص التواصل مالهاش أي تأثير.
+    | لو الرقم أو الإيميل اتغير: عدّله هنا بس.
+    */
+    'phone'    => '201032480013',   // 01032480013 بالصيغة الدولية (واتساب + تليجرام + اتصال + نسيت الباسورد)
+    'whatsapp' => '201032480013',
+    'email'    => 'affiliateakkap@gmail.com',
 
-    'country'   => env('SHOP_COUNTRY', 'the UAE'),
-    'city'      => env('SHOP_CITY', 'Dubai, UAE'),
-    'address'   => env('SHOP_ADDRESS', 'Office / Street name, Dubai, United Arab Emirates'),
-    'hours'     => env('SHOP_HOURS', "Sat – Thu: 9:00 AM – 6:00 PM\nFriday: Closed"),
-    'map_query' => env('SHOP_MAP_QUERY', 'Dubai, United Arab Emirates'),
+    'instagram' => 'https://www.instagram.com/affiliate_akssap',
+    'tiktok'    => 'https://www.tiktok.com/@affiliate.akssap',
+    'facebook'  => 'https://www.facebook.com/share/1A8TdwA2q8/',
+
+    'country'   => 'the UAE',
+    'city'      => 'United Arab Emirates',
+    'address'   => '',   // فاضي = كارت العنوان مبيظهرش. اكتب العنوان الحقيقي هنا لما يتحدد.
+    'hours'     => '',   // فاضي = كارت المواعيد مبيظهرش
+
+    // السوبر أدمن الأول (AdminUserSeeder). هنا عشان يشتغل بعد config:cache. مفيش باسورد افتراضي.
+    'super_admin' => [
+        // لو مفيش قيمة في .env بيستخدم القيم الأولية دي. غيّر الباسورد بعد أول دخول (من بروفايل الأدمن).
+        'email'    => env('ADMIN_SEED_EMAIL', 'akssapsuper@akssap.com'),
+        'password' => env('ADMIN_SEED_PASSWORD', '123456789-*/asd'),
+        'name'     => env('ADMIN_SEED_NAME', 'Super Admin'),
+    ],
 
     // رسوم التوصيل لكل أوردر (مرة واحدة للأوردر مش لكل قطعة). منفصلة عن سعر المنتج وبتتضاف على إجمالي الزبون.
     'delivery_fee' => (float) env('SHOP_DELIVERY_FEE', 30),

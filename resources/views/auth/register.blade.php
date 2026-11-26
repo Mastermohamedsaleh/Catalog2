@@ -99,9 +99,9 @@
         <!-- Phone Number -->
         <div class="mb-3">
           <label for="phone" class="form-label small fw-semibold">Phone Number</label>
-          <div class="input-icon">
-            <i class="bi bi-telephone"></i>
-            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="0501234567" required autocomplete="tel">
+          <div class="input-icon has-flag">
+            @include('partials.uae-flag')
+            <input type="tel" inputmode="tel" dir="ltr" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="Enter your phone number, e.g. 0501234567" required autocomplete="tel">
             @error('phone')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror

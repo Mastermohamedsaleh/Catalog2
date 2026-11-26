@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class, // ← السوبر أدمن هنا
     ]);
+    $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 })
     ->withExceptions(function (Exceptions $exceptions) {
         //

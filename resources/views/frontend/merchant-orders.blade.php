@@ -149,7 +149,7 @@
         </div>
         <div class="col-md-6">
           <label for="customerPhone" class="form-label small fw-semibold">Customer phone <span class="text-danger">*</span></label>
-          <div class="input-icon"><i class="bi bi-telephone"></i><input type="tel" class="form-control" id="customerPhone" name="customer_phone" value="{{ old('customer_phone') }}" required placeholder="05XXXXXXXX"><div class="invalid-feedback">Enter valid phone number.</div></div>
+          <div class="input-icon has-flag">@include('partials.uae-flag')<input type="tel" inputmode="tel" dir="ltr" class="form-control" id="customerPhone" name="customer_phone" value="{{ old('customer_phone') }}" required placeholder="Enter the customer's phone number, e.g. 0501234567"><div class="invalid-feedback">Enter valid phone number.</div></div>
         </div>
 
         <!-- الإمارة + نوع الزبون -->

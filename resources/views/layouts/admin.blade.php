@@ -174,10 +174,10 @@
 
     <!-- Flash Notifications from Laravel Session -->
     @if(session('success'))
-        <script>showToast("{{ session('success') }}", 'success');</script>
+        <script>showToast(@json(session('success')), 'success');</script>
     @endif
     @if(session('error'))
-        <script>showToast("{{ session('error') }}", 'error');</script>
+        <script>showToast(@json(session('error')), 'error', 6000);</script>
     @endif
 
     @stack('scripts')
