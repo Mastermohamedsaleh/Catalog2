@@ -25,7 +25,7 @@ class Phone
     /** الرسالة اللي بتظهر لو الرقم غلط. */
     public static function message(): string
     {
-        return 'رقم الموبايل غير صحيح. اكتب رقماً إماراتياً مثل 0501234567 أو +971501234567.';
+        return __('Please enter a valid UAE mobile number, for example 0501234567 or +971501234567.');
     }
 
     /**

@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
   <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+@include('partials.theme-head')
 </head>
 <body class="d-flex flex-column min-vh-100">
 @include('partials.delivery-bar')
@@ -137,11 +138,11 @@
       <ul class="list-unstyled small mb-4">
         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Total Stock: {{ $product->stock ?? 0 }} available</li>
         <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Original, quality-checked product</li>
-        <li><i class="bi bi-truck text-success me-2"></i>Delivery: flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} per order, <strong>separate from the product price</strong></li>
+        <li><i class="bi bi-truck text-success me-2"></i>Delivery: flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} per delivery, <strong>separate from the product price</strong></li>
       </ul>
 
       <div class="d-grid gap-2">
-        <a href="https://wa.me/{{ config('shop.whatsapp') }}?text={{ urlencode('مرحباً، أهتم بالاستفسار عن المنتج: ' . $product->name) }}" target="_blank" class="btn btn-primary btn-lg fw-semibold shadow-sm">
+        <a href="https://wa.me/{{ config('shop.whatsapp') }}?text={{ urlencode('Hello, I am interested in this product: ' . $product->name) }}" target="_blank" class="btn btn-primary btn-lg fw-semibold shadow-sm">
           <i class="bi bi-whatsapp me-2"></i> Inquire via WhatsApp
         </a>
       </div>
@@ -219,5 +220,6 @@
         if(modalImg) modalImg.src = src;
     }
 </script>
+@include('partials.theme-toggle')
 </body>
 </html>

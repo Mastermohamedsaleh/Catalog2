@@ -99,7 +99,7 @@ class CategoryController extends Controller
             return back()->withInput()->withErrors(['name' => 'تعذر حفظ القسم، يرجى المحاولة مرة أخرى.']);
         }
 
-        return redirect()->back()->with('success', 'Category created successfully!');
+        return redirect()->back()->with('success', 'تم إضافة القسم بنجاح.');
     }
 
     public function update(Request $request, Category $category)
@@ -137,7 +137,7 @@ class CategoryController extends Controller
 
         $this->mediaService->deleteFile($oldImage); // only after the row points at the new file
 
-        return redirect()->back()->with('success', 'Category updated successfully!');
+        return redirect()->back()->with('success', 'تم تحديث القسم بنجاح.');
     }
 
     public function destroy(Category $category)
@@ -150,6 +150,6 @@ class CategoryController extends Controller
         $category->delete();
         $this->mediaService->deleteFile($image);
 
-        return redirect()->back()->with('success', 'Category deleted successfully!');
+        return redirect()->back()->with('success', 'تم حذف القسم بنجاح.');
     }
 }

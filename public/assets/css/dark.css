@@ -1,0 +1,143 @@
+/* =========================================================
+   الوضع الداكن (Night mode). بيشتغل لما <html data-bs-theme="dark">.
+   Bootstrap 5.3 بيظبط لوحده: body / card / modal / table / form / dropdown.
+   هنا بنظبط بس الحاجات اللي ألوانها مكتوبة عندنا (كروت الموقع، الهيدر، الجداول، البادجات...).
+   ========================================================= */
+
+/* زرار التبديل (عائم، مستقل عن شكل أي صفحة) */
+.theme-toggle { position: fixed; left: 1rem; bottom: 1rem; z-index: 1600; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(100, 116, 139, .35); background: #fff; color: #0a1f5c; display: grid; place-items: center; font-size: 1.15rem;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, .18); cursor: pointer; transition: transform .15s; padding: 0; }
+.theme-toggle:hover { transform: scale(1.07); }
+.theme-toggle .bi-sun-fill { display: none; }
+[data-bs-theme="dark"] .theme-toggle { background: #1e293b; color: #ffb000; border-color: rgba(255, 255, 255, .15); }
+[data-bs-theme="dark"] .theme-toggle .bi-moon-stars-fill { display: none; }
+[data-bs-theme="dark"] .theme-toggle .bi-sun-fill { display: inline; }
+/* لوحة الأدمن: الـ sidebar على الشمال، فالزرار يتزاحف بعده */
+@media (min-width: 992px) { .theme-toggle.tt-admin { left: calc(var(--sidebar-w, 260px) + 1rem); } }
+
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --ink: #e5e9f2;
+  --muted: #94a3b8;
+  --canvas: #0b1220;
+  --surface: #131c2e;       /* الكروت */
+  --surface-2: #1a2540;     /* خلفيات ثانوية (رأس جدول، hover) */
+  --line: #26334d;          /* الحدود */
+  --brand-soft: rgba(242, 106, 0, .16);
+  --navy: #e5e9f2;          /* --navy بيستخدم كلون نص (اللوجو، الإجمالي، الروابط) فبيتحول لفاتح. الخلفيات الكحلية مكتوبة بـ hex فمش بتتأثر */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, .5);
+  --bs-body-bg: var(--canvas);
+  --bs-body-color: var(--ink);
+  --bs-secondary-color: var(--muted);
+  --bs-border-color: var(--line);
+  --bs-card-bg: var(--surface);
+  --bs-modal-bg: var(--surface);
+  --bs-dropdown-bg: var(--surface);
+  --bs-tertiary-bg: var(--surface-2);
+}
+
+/* خلفيات وكروت */
+[data-bs-theme="dark"] .card-soft,
+[data-bs-theme="dark"] .cat-card,
+[data-bs-theme="dark"] .prod-card,
+[data-bs-theme="dark"] .feature-card,
+[data-bs-theme="dark"] .contact-item,
+[data-bs-theme="dark"] .about-badge,
+[data-bs-theme="dark"] .card,
+[data-bs-theme="dark"] .toast-top { background: var(--surface); color: var(--ink); }
+[data-bs-theme="dark"] .site-nav,
+[data-bs-theme="dark"] .topbar { background: rgba(11, 18, 32, .92); }
+[data-bs-theme="dark"] .navbar .nav-link,
+[data-bs-theme="dark"] .site-nav .nav-link { color: var(--ink); }
+[data-bs-theme="dark"] .navbar .nav-link:hover { color: var(--brand); }
+
+/* أدوات Bootstrap اللي ليها ألوان ثابتة */
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .bg-body { background-color: var(--surface) !important; }
+[data-bs-theme="dark"] .bg-light { background-color: var(--surface-2) !important; }
+[data-bs-theme="dark"] .text-dark { color: var(--ink) !important; }
+[data-bs-theme="dark"] .text-muted { color: var(--muted) !important; }
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-bottom { border-color: var(--line) !important; }
+[data-bs-theme="dark"] .btn-light { --bs-btn-bg: var(--surface-2); --bs-btn-border-color: var(--line); --bs-btn-color: var(--ink);
+  --bs-btn-hover-bg: #223052; --bs-btn-hover-border-color: var(--line); --bs-btn-hover-color: #fff; --bs-btn-active-bg: #223052; --bs-btn-active-color: #fff; }
+[data-bs-theme="dark"] .btn-outline-dark { --bs-btn-color: var(--ink); --bs-btn-border-color: var(--line); --bs-btn-hover-bg: var(--surface-2); --bs-btn-hover-color: #fff; }
+[data-bs-theme="dark"] .btn-close { filter: invert(1) grayscale(1) brightness(1.6); }
+[data-bs-theme="dark"] .btn-close-white { filter: none; }
+
+/* الفورم */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select { background-color: var(--surface-2); border-color: var(--line); color: var(--ink); }
+[data-bs-theme="dark"] .form-control::placeholder { color: #64748b; }
+[data-bs-theme="dark"] .form-control:disabled,
+[data-bs-theme="dark"] .form-control[readonly] { background-color: #0f1729; color: var(--muted); }
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus { background-color: var(--surface-2); color: var(--ink); }
+[data-bs-theme="dark"] .form-check-input { background-color: var(--surface-2); border-color: #475569; }
+[data-bs-theme="dark"] .form-check-input:checked { background-color: var(--brand); border-color: var(--brand); }
+[data-bs-theme="dark"] .input-group-text { background: var(--surface-2); border-color: var(--line); color: var(--muted); }
+[data-bs-theme="dark"] .drop-zone { background: var(--surface-2); border-color: #475569; }
+[data-bs-theme="dark"] .drop-zone:hover { background: var(--brand-soft); }
+
+/* الجداول */
+[data-bs-theme="dark"] .table { --bs-table-color: var(--ink); --bs-table-border-color: var(--line); --bs-table-striped-bg: rgba(255, 255, 255, .03); }
+[data-bs-theme="dark"] .table-modern thead th { background: var(--surface-2); color: var(--muted); border-bottom-color: var(--line); }
+[data-bs-theme="dark"] .table-modern td { border-color: var(--line); }
+[data-bs-theme="dark"] .table-modern tbody tr:hover { background: rgba(242, 106, 0, .08); }
+[data-bs-theme="dark"] .table-light, [data-bs-theme="dark"] .table-light > th, [data-bs-theme="dark"] .table-light > td { --bs-table-bg: var(--surface-2); --bs-table-color: var(--ink); }
+
+/* بادجات ناعمة (فاتحة في النهار، شفافة في الليل) */
+[data-bs-theme="dark"] .badge-soft-success { background: rgba(34, 197, 94, .16); color: #86efac; }
+[data-bs-theme="dark"] .badge-soft-warning { background: rgba(245, 158, 11, .18); color: #fcd34d; }
+[data-bs-theme="dark"] .badge-soft-danger { background: rgba(239, 68, 68, .18); color: #fca5a5; }
+[data-bs-theme="dark"] .badge-soft-primary { background: var(--brand-soft); color: #ff9a4d; }
+[data-bs-theme="dark"] .eyebrow { background: var(--brand-soft); }
+[data-bs-theme="dark"] .alert { --bs-alert-bg: var(--surface-2); --bs-alert-border-color: var(--line); --bs-alert-color: var(--ink); }
+[data-bs-theme="dark"] .alert-danger { --bs-alert-bg: rgba(239, 68, 68, .14); --bs-alert-color: #fecaca; --bs-alert-border-color: rgba(239, 68, 68, .35); }
+[data-bs-theme="dark"] .alert-success { --bs-alert-bg: rgba(34, 197, 94, .14); --bs-alert-color: #bbf7d0; --bs-alert-border-color: rgba(34, 197, 94, .35); }
+[data-bs-theme="dark"] .alert-warning { --bs-alert-bg: rgba(245, 158, 11, .14); --bs-alert-color: #fde68a; --bs-alert-border-color: rgba(245, 158, 11, .35); }
+[data-bs-theme="dark"] .alert-info { --bs-alert-bg: rgba(56, 189, 248, .12); --bs-alert-color: #bae6fd; --bs-alert-border-color: rgba(56, 189, 248, .3); }
+
+/* مودال، دروب داون، أكورديون، بجينيشن */
+[data-bs-theme="dark"] .modal-content { background: var(--surface); border-color: var(--line); }
+[data-bs-theme="dark"] .modal-header, [data-bs-theme="dark"] .modal-footer { border-color: var(--line); }
+[data-bs-theme="dark"] .dropdown-menu { background: var(--surface); border-color: var(--line); }
+[data-bs-theme="dark"] .dropdown-item { color: var(--ink); }
+[data-bs-theme="dark"] .dropdown-item:hover { background: var(--surface-2); }
+[data-bs-theme="dark"] .accordion { --bs-accordion-bg: var(--surface); --bs-accordion-color: var(--ink); --bs-accordion-border-color: var(--line);
+  --bs-accordion-active-bg: var(--brand-soft); --bs-accordion-active-color: #ffb000; --bs-accordion-btn-color: var(--ink); }
+[data-bs-theme="dark"] .accordion-button::after { filter: invert(1) brightness(1.6); }
+[data-bs-theme="dark"] .page-link { background: var(--surface); border-color: var(--line); color: var(--ink); }
+[data-bs-theme="dark"] .page-item.disabled .page-link { background: var(--surface-2); color: #64748b; }
+[data-bs-theme="dark"] .breadcrumb-item.active, [data-bs-theme="dark"] .breadcrumb-item + .breadcrumb-item::before { color: var(--muted); }
+
+/* روابط */
+[data-bs-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item):not(.page-link):not(.text-reset):not(.contact-item):not(.cat-card):not(.prod-card) { color: #ff9a4d; }
+[data-bs-theme="dark"] a.text-white, [data-bs-theme="dark"] .site-footer a { color: inherit; }
+[data-bs-theme="dark"] .site-footer { background: #060c1a; }
+[data-bs-theme="dark"] hr { border-color: var(--line); opacity: 1; }
+[data-bs-theme="dark"] .price { color: #ff9a4d; }
+[data-bs-theme="dark"] .text-primary { color: #ff9a4d !important; }
+[data-bs-theme="dark"] .btn-outline-primary { --bs-btn-color: #ff9a4d; }
+[data-bs-theme="dark"] .btn-outline-primary:hover { color: #fff; }
+
+/* لوحة الدخول والتسجيل: العمود الأبيض */
+[data-bs-theme="dark"] .auth-wrap > .col-lg-6:not(.auth-hero),
+[data-bs-theme="dark"] .auth-form-side { background: var(--canvas); }
+[data-bs-theme="dark"] .auth-card { color: var(--ink); }
+[data-bs-theme="dark"] .brand-logo { box-shadow: 0 2px 10px rgba(0, 0, 0, .6); }
+[data-bs-theme="dark"] .delivery-bar { filter: saturate(.95); }
+
+/* أزرار فاتحة فوق خلفية الهيرو الكحلية لازم تفضل فاتحة (مش بتتحول لداكنة) */
+[data-bs-theme="dark"] .hero .btn-light,
+[data-bs-theme="dark"] .band .btn-light,
+[data-bs-theme="dark"] .auth-hero .btn-light { --bs-btn-bg: #fff; --bs-btn-border-color: #fff; --bs-btn-color: #0a1f5c; --bs-btn-hover-bg: #ffe9d6; --bs-btn-hover-color: #0a1f5c; --bs-btn-hover-border-color: #ffe9d6; }
+
+/* Bootstrap بيقلب ألوان أسهم التقليب في الدارك مود (سهم أسود على دايرة فاتحة فتختفي). بنثبّتها: دايرة غامقة + سهم أبيض دايماً */
+[data-bs-theme="dark"] .carousel .carousel-control-prev-icon,
+[data-bs-theme="dark"] .carousel .carousel-control-next-icon { filter: none; background-color: rgba(5, 15, 53, .85); box-shadow: 0 0 0 2px rgba(255, 255, 255, .95), 0 4px 14px rgba(0, 0, 0, .6); }
+[data-bs-theme="dark"] .carousel .carousel-indicators [data-bs-target] { background-color: #fff; }
+[data-bs-theme="dark"] .carousel .carousel-indicators .active { background-color: var(--brand); }

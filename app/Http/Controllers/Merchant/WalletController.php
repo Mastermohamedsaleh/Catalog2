@@ -59,7 +59,7 @@ class WalletController extends Controller
         $request->validate([
             'phone' => ['required', 'string', Phone::rule()],
         ], [
-            'phone.regex' => 'رقم المحفظة غير صحيح. ' . Phone::message(),
+            'phone.regex' => 'This wallet number is not valid. ' . Phone::message(),
         ]);
 
         try {
@@ -76,7 +76,7 @@ class WalletController extends Controller
                     'wallet_id'   => $wallet->id,
                     'type'        => 'debit',
                     'amount'      => $amount,
-                    'description' => 'سحب أرباح على رقم المحفظة: ' . $request->phone,
+                    'description' => 'Withdrawal to wallet number: ' . $request->phone,
                 ]);
 
                 $wallet->decrement('balance', $amount);
@@ -85,13 +85,13 @@ class WalletController extends Controller
             }, 3);
         } catch (\Throwable $e) {
             Log::error('Withdraw failed', ['user' => $merchant->id, 'exception' => $e]);
-            return back()->withErrors(['error' => 'حدث خطأ أثناء تنفيذ طلب السحب، يرجى المحاولة لاحقاً.']);
+            return back()->withErrors(['error' => 'Something went wrong while processing your withdrawal. Please try again later.']);
         }
 
         if ($amount === null) {
-            return back()->withErrors(['error' => 'عذراً، لا يوجد رصيد متاح للسحب حالياً!']);
+            return back()->withErrors(['error' => 'You have no balance available to withdraw right now.']);
         }
 
-        return back()->with('success', 'تم تقديم طلب سحب الأرباح بنجاح، وتصفير الخزنة في انتظار التحويل على رقم المحفظة الخاص بك!');
+        return back()->with('success', 'Your withdrawal request was submitted. The transfer to your wallet number is pending.');
     }
 }

@@ -13,7 +13,7 @@
             <label class="form-label small fw-semibold" for="p_phone">Phone number</label>
             <div class="input-icon has-flag">
                 @include('partials.uae-flag')
-                <input id="p_phone" name="phone" type="tel" maxlength="20" required autocomplete="tel" dir="ltr" placeholder="Enter your phone number, e.g. 0501234567"
+                <input id="p_phone" name="phone" type="tel" maxlength="20" {{ $user->isAdmin() ? '' : 'required' }} autocomplete="tel" dir="ltr" placeholder="{{ $user->isAdmin() ? 'Phone number (optional)' : 'Enter your phone number, e.g. 0501234567' }}"
                        class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone', $user->phone) }}">
                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>

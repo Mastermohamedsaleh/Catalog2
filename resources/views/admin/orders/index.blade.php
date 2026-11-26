@@ -3,6 +3,7 @@
 @section('title', 'Orders · AksSap Admin')
 @section('page_title', 'Store Orders')
 
+@section('inline_errors', '1')
 @section('content')
 <div class="card-soft mb-4">
     <!-- Header & Search -->
@@ -82,7 +83,7 @@
                         <td><span class="fw-bold">{{ $order->stock }}</span></td>
                         <td>
                             <div class="fw-bold">{{ $order->customer_total }} {{ config('shop.currency') }}</div>
-                            <div class="small text-muted">incl. {{ number_format((float) $order->delivery_fee, 0) }} delivery</div>
+                            @if((float) $order->delivery_fee > 0)<div class="small text-muted">incl. {{ number_format((float) $order->delivery_fee, 0) }} delivery</div>@else<div class="small text-muted">بدون توصيل (مدفوع في أوردر آخر لنفس العميل)</div>@endif
                         </td>
                         <td>
                             <span class="badge badge-soft-success fw-bold">+{{ $order->profit }} {{ config('shop.currency') }}</span>
@@ -277,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // تأكيد الحذف
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function (e) {
-            if (!confirm('Are you sure you want to delete this order?')) {
+            if (!confirm('هل أنت متأكد من حذف هذا الأوردر نهائياً؟')) {
                 e.preventDefault();
             }
         });

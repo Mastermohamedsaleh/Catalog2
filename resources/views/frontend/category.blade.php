@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
   <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+@include('partials.theme-head')
 </head>
 <body class="d-flex flex-column min-vh-100">
 @include('partials.delivery-bar')
@@ -138,7 +139,7 @@
           @endif
       @else
           <div class="text-center py-5">
-              <p class="text-muted fs-5">لا توجد أقسام فرعية أو منتجات متاحة في هذا القسم حالياً.</p>
+              <p class="text-muted fs-5">No collections or products are available in this category right now.</p>
           </div>
       @endif
   @endif
@@ -174,5 +175,6 @@
   });
 })();
 </script>
+@include('partials.theme-toggle')
 </body>
 </html>

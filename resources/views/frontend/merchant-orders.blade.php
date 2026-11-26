@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
   <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+@include('partials.theme-head')
 </head>
 <body class="d-flex flex-column min-vh-100">
 <div id="toastTop" aria-live="polite"></div>
@@ -111,7 +112,7 @@
         <!-- سعر المنتج الأساسي -->
         <div class="col-6 col-md-3">
           <label for="productPrice" class="form-label small fw-semibold">Product price <span class="text-muted fw-normal">(cost)</span></label>
-          <div class="input-group"><input type="number" class="form-control bg-light" id="productPrice" name="product_price" readonly tabindex="-1" placeholder="0"><span class="input-group-text">{{ config('shop.currency') }}</span></div>
+          <div class="input-group"><input type="number" class="form-control bg-light" id="productPrice" readonly tabindex="-1" placeholder="0"><span class="input-group-text">{{ config('shop.currency') }}</span></div>
           <!-- تفصيل التكلفة: السعر الأساسي + فرق المقاس = التكلفة النهائية اللي لازم البيع ما ينزلش عنها -->
           <div class="form-text" id="costBreakdown"></div>
         </div>
@@ -121,8 +122,8 @@
           <label for="sellingPrice" class="form-label small fw-semibold">Selling price <span class="text-muted fw-normal">(per item)</span> <span class="text-danger">*</span></label>
           <div class="input-group"><input type="number" class="form-control" id="sellingPrice" name="selling_price" min="0" step="0.01" required placeholder="0.00"><span class="input-group-text">{{ config('shop.currency') }}</span></div>
           <div class="form-text fw-semibold" id="minSellHint"></div>
-          <div class="form-text">The {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} delivery fee is added automatically. Do not include it in your price.</div>
-          <div class="invalid-feedback">Selling price must be at least the product price.</div>
+          <div class="form-text">The {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} delivery fee is added automatically (once per delivery: several orders to the same customer and address within 24 hours pay it once). Do not include it in your price.</div>
+          <div class="invalid-feedback">Your profit must be at least {{ number_format(config('shop.min_profit'), 0) }} {{ config('shop.currency') }} per item. Increase the selling price. (The price also can't be more than {{ config('shop.max_markup') }}× the cost.)</div>
         </div>
 
         <!-- الربح المتوقع -->
@@ -131,15 +132,13 @@
           <div class="border rounded-3 px-3 py-2 bg-light d-flex align-items-center justify-content-between" style="min-height:44px">
             <span id="profitText" class="h4 fw-bold mb-0">—</span><i class="bi bi-graph-up-arrow text-success"></i>
           </div>
-          <input type="hidden" id="profit" name="profit">
+          <input type="hidden" id="profit">
         </div>
 
         <!-- الحالة -->
         <div class="col-md-4">
           <label class="form-label small fw-semibold">Status</label>
           <div class="border rounded-3 px-3 py-2 bg-light d-flex align-items-center gap-2" style="min-height:44px"><span class="badge bg-warning text-dark">Pending</span><span class="small text-muted">Set by admin</span></div>
-          <input type="hidden" name="status" value="pending">
-          <input type="hidden" name="is_paid_to_wallet" value="0">
         </div>
 
         <!-- بيانات العميل -->
@@ -177,6 +176,10 @@
           <label for="customerAddress" class="form-label small fw-semibold">Customer address <span class="text-danger">*</span></label>
           <textarea class="form-control" id="customerAddress" name="customer_address" rows="2" required placeholder="Area, street, building, apartment…">{{ old('customer_address') }}</textarea>
           <div class="invalid-feedback">Enter delivery address.</div>
+          <div class="alert alert-warning small py-2 px-3 mt-2 mb-0">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+            <strong>Important:</strong> if this customer has another order from you in the last 24 hours, write the address <u>exactly the same</u> (same area, street, building, apartment) and use the same phone number. Then the {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} delivery fee is charged <strong>once</strong>. If the address is written differently, it counts as a new delivery and the fee is charged again.
+          </div>
         </div>
         <div class="col-12">
           <label for="orderNotes" class="form-label small fw-semibold">Notes <span class="text-muted fw-normal">(optional)</span></label>
@@ -185,7 +188,7 @@
 
         <!-- ملخص اللي الزبون هيدفعه: المنتجات + التوصيل = الإجمالي -->
         <div class="col-12">
-          <div class="rounded-4 p-3 p-lg-4" style="background:#fff1e6;border:1px solid #ffd9b8">
+          <div class="rounded-4 p-3 p-lg-4 bg-brand-soft" style="border:1px solid #ffd9b8">
             <div class="d-flex justify-content-between small mb-1"><span class="text-muted">Products (selling price × quantity)</span><span class="fw-semibold" id="sumItems">—</span></div>
             <div class="d-flex justify-content-between small mb-2"><span class="text-muted"><i class="bi bi-truck me-1"></i>Delivery fee <span class="badge bg-warning text-dark ms-1">separate from the product price</span></span><span class="fw-semibold" id="sumDelivery">{{ number_format(config('shop.delivery_fee'), 2, '.', '') }} {{ config('shop.currency') }}</span></div>
             <div class="d-flex justify-content-between align-items-center border-top pt-2" style="border-color:#ffd9b8!important">
@@ -251,7 +254,7 @@
                           @if($order->status == 'pending') 
                               <div class="d-flex align-items-center gap-2">
                                   <span class="badge bg-warning text-dark">Pending</span>
-                                  <form action="{{ route('merchant.orders.cancel', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من إلغاء هذا الأوردر وإعادة المخزون؟');">
+                                  <form action="{{ route('merchant.orders.cancel', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel this order? The stock will be returned.');">
                                       @csrf
                                       <button type="submit" class="btn btn-outline-danger btn-sm px-2 py-0" style="font-size: 11px; border-radius: 6px; line-height: 1.5;">
                                           <i class="bi bi-x-circle me-1"></i>Cancel
@@ -316,6 +319,8 @@
     const productSearchUrl = @json(route('merchant.products.search'));
     const CURRENCY = @json(config('shop.currency'));
     const DELIVERY_FEE = @json((float) config('shop.delivery_fee'));
+    // مفاتيح التوصيلات اللي رسومها اتدفعت بالفعل (نفس العميل والعنوان خلال 24 ساعة) => الأوردر الجديد بدون رسوم
+    const PAID_KEYS = @json($paidKeys ?? []);
 </script>
 
 <script>
@@ -337,13 +342,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const minSellHint = document.getElementById('minSellHint');
     const toCents = n => Math.round((parseFloat(n) || 0) * 100);
     const money = cents => (cents / 100).toFixed(2);
+    const MAX_MARKUP = @json((float) config('shop.max_markup'));   // أقصى سعر بيع = التكلفة × الرقم ده
+    const MIN_PROFIT_CENTS = toCents(@json((float) config('shop.min_profit')));   // أقل ربح في القطعة (نفس قاعدة السيرفر)
 
     // التكلفة الحقيقية = سعر المنتج الأساسي + فرق سعر المقاس المختار (نفس معادلة السيرفر بالظبط).
     // لو التاجر شاف السعر الأساسي بس هيفتكر إنه الحد الأدنى للبيع، فبنوريه التفصيل والحد الأدنى صراحةً.
     function setCost(baseCents, modifierCents) {
         const cost = baseCents + modifierCents;
         productPriceInput.value = cost > 0 ? money(cost) : '';
-        sellingPriceInput.min = cost > 0 ? money(cost) : '0';
+        sellingPriceInput.min = cost > 0 ? money(cost + MIN_PROFIT_CENTS) : '0';
+        sellingPriceInput.max = cost > 0 ? money(Math.round(cost * MAX_MARKUP)) : '';
 
         if (!baseCents) {
             costBreakdown.textContent = '';
@@ -352,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function () {
             costBreakdown.textContent = modifierCents !== 0
                 ? `Base ${money(baseCents)} ${modifierCents > 0 ? '+' : '−'} size difference ${money(Math.abs(modifierCents))} = ${money(cost)} ${CURRENCY}`
                 : `Base price ${money(baseCents)} ${CURRENCY}`;
-            minSellHint.textContent = `Minimum selling price: ${money(cost)} ${CURRENCY}`;
+            minSellHint.textContent = `Minimum selling price: ${money(cost + MIN_PROFIT_CENTS)} ${CURRENCY} (cost ${money(cost)} + minimum profit ${money(MIN_PROFIT_CENTS)}). Maximum: ${money(Math.round(cost * MAX_MARKUP))} ${CURRENCY}`;
         }
         calculateProfit();
     }
@@ -450,6 +458,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // نفس منطق السيرفر (App\Support\DeliveryFee::groupKey): آخر 9 أرقام من الموبايل + الإمارة + العنوان (حروف وأرقام بس).
+    function deliveryFeeNow() {
+        const phone = (document.getElementById('customerPhone').value || '').replace(/\D+/g, '').slice(-9);
+        const emirate = (document.getElementById('emirate').value || '').trim().toLowerCase();
+        const addr = (document.getElementById('customerAddress').value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+        if (!phone || !emirate || !addr) return DELIVERY_FEE;
+        return PAID_KEYS.includes(phone + '|' + emirate + '|' + addr) ? 0 : DELIVERY_FEE;
+    }
+    ['customerPhone', 'emirate', 'customerAddress'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener('input', () => calculateProfit()); el.addEventListener('change', () => calculateProfit()); }
+    });
+
     function calculateProfit() {
         const price = parseFloat(productPriceInput.value) || 0;
         const qty = parseInt(qtyInput.value) || 1;
@@ -462,8 +483,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // ملخص اللي الزبون هيدفعه: (سعر البيع × الكمية) + رسوم التوصيل. التوصيل مش داخل في ربح التاجر.
         const itemsCents = toCents(selling) * qty;
         document.getElementById('sumItems').textContent = selling > 0 ? `${money(itemsCents)} ${CURRENCY}` : '—';
-        document.getElementById('sumDelivery').textContent = `${money(toCents(DELIVERY_FEE))} ${CURRENCY}`;
-        document.getElementById('sumTotal').textContent = selling > 0 ? `${money(itemsCents + toCents(DELIVERY_FEE))} ${CURRENCY}` : '—';
+        const fee = deliveryFeeNow();
+        document.getElementById('sumDelivery').textContent = fee === 0 ? `0.00 ${CURRENCY} (already paid on this customer's other order)` : `${money(toCents(fee))} ${CURRENCY}`;
+        document.getElementById('sumTotal').textContent = selling > 0 ? `${money(itemsCents + toCents(fee))} ${CURRENCY}` : '—';
 
         if (selling > 0 && totalProfit >= 0) {
             profitText.textContent = totalProfit.toFixed(2) + ' ' + CURRENCY;
@@ -479,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const prodId = productIdInput.value;
             if (!prodId) {
                 e.preventDefault();
-                alert('من فضلك اختر منتجاً صالحاً من قائمة البحث أولاً!');
+                alert('Please choose a product from the search list first.');
                 searchInput.focus();
                 return false;
             }
@@ -501,5 +523,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+@include('partials.theme-toggle')
 </body>
 </html>

@@ -50,3 +50,18 @@ a:hover { color: var(--brand); }
 /* علم الإمارات جوه حقول الموبايل (نفس مكان أيقونة input-icon) */
 .input-icon > .uae-flag { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); pointer-events: none; z-index: 4; }
 .input-icon.has-flag .form-control { padding-left: 3rem; }
+
+/* أيقونات الحقول (إيميل، تليفون، علم) تفضل في نص الحقل نفسه حتى لو ظهرت رسالة خطأ تحته.
+   كانت بتتحسب من نص الصندوق كله (حقل + رسالة الخطأ) فبتنزل لتحت لما الخطأ يظهر. */
+.input-icon > i.bi, .input-icon > button.toggle-pass { top: 0; transform: none; height: 2.9rem; display: flex; align-items: center; }
+.input-icon > button.toggle-pass { padding-top: 0; padding-bottom: 0; }
+.input-icon > svg.uae-flag { top: calc(1.45rem - 7.5px); transform: none; }
+.input-icon:has(.form-control-sm) > i.bi, .input-icon:has(.form-control-sm) > button.toggle-pass { height: 2.1rem; }
+
+/* أسهم وتقليب معرض الصور: دايرة غامقة بحدود بيضاء عشان تبان على أي صورة (فاتحة أو غامقة) وفي الدارك مود */
+.carousel-control-prev, .carousel-control-next { opacity: 1; width: 14%; }
+.carousel-control-prev-icon, .carousel-control-next-icon { width: 2.7rem; height: 2.7rem; background-color: rgba(5, 15, 53, .78); border-radius: 50%;
+  background-size: 52%; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9), 0 4px 14px rgba(0, 0, 0, .45); transition: transform .15s, background-color .15s; }
+.carousel-control-prev:hover .carousel-control-prev-icon, .carousel-control-next:hover .carousel-control-next-icon { background-color: var(--brand, #f26a00); transform: scale(1.08); }
+.carousel-indicators [data-bs-target] { width: 26px; height: 5px; border: 0; border-radius: 3px; background-color: #fff; opacity: .55; box-shadow: 0 0 0 1px rgba(0, 0, 0, .35); }
+.carousel-indicators .active { opacity: 1; background-color: var(--brand, #f26a00); }

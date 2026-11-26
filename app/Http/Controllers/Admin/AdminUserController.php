@@ -37,7 +37,7 @@ class AdminUserController extends Controller
         ]);
 
         return redirect()->route('admin.admins.index')
-                         ->with('success', 'Admin created successfully!');
+                         ->with('success', 'تم إضافة الأدمن بنجاح.');
     }
 
     /** This controller only ever touches admin accounts (never merchants). */
@@ -46,9 +46,19 @@ class AdminUserController extends Controller
         abort_unless($admin->role === 'catalog_master_root' || $admin->is_super, 404);
     }
 
+    /** السوبر أدمن مايقدرش يعدّل أو يحذف سوبر أدمن تاني (نفسه بس يعدّل بياناته). */
+    private function otherSuperAdminBlocked(User $admin): bool
+    {
+        return $admin->is_super && $admin->id !== auth()->id();
+    }
+
     public function update(Request $request, User $admin)
     {
         $this->ensureAdmin($admin);
+
+        if ($this->otherSuperAdminBlocked($admin)) {
+            return back()->with('error', 'لا يمكن لسوبر أدمن تعديل بيانات سوبر أدمن آخر. كل سوبر أدمن يعدّل حسابه بنفسه.');
+        }
 
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
@@ -76,15 +86,21 @@ class AdminUserController extends Controller
         $admin->save();
 
         return redirect()->route('admin.admins.index')
-                         ->with('success', 'Admin updated successfully!');
+                         ->with('success', 'تم تحديث بيانات الأدمن بنجاح.');
     }
 
-    public function destroy(User $admin)
+    public function destroy(Request $request, User $admin)
     {
         $this->ensureAdmin($admin);
 
+        if ($this->otherSuperAdminBlocked($admin)) {
+            return back()->with('error', 'لا يمكن لسوبر أدمن حذف سوبر أدمن آخر.');
+        }
+
+        $this->requirePasswordConfirmation($request);
+
         if ($admin->id === auth()->id()) {
-            return back()->with('error', 'You cannot delete your own active account!');
+            return back()->with('error', 'لا يمكنك حذف حسابك الشخصي وأنت مسجل دخول به.');
         }
 
         if ($admin->is_super && User::where('is_super', true)->count() <= 1) {
@@ -94,6 +110,6 @@ class AdminUserController extends Controller
         $admin->delete();
 
         return redirect()->route('admin.admins.index')
-                         ->with('success', 'Admin deleted successfully!');
+                         ->with('success', 'تم حذف الأدمن بنجاح.');
     }
 }

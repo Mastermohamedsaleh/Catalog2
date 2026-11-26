@@ -3,6 +3,7 @@
 @section('title', 'Admins Management · AksSap Admin')
 @section('page_title', 'Admins Management')
 
+@section('inline_errors', '1')
 @section('content')
 <div class="card-soft mb-4">
     <!-- Header & Add Button -->
@@ -69,15 +70,20 @@
                         </td>
                         <td>{{ $admin->created_at->format('Y-m-d') }}</td>
                         <td class="text-end text-nowrap">
+                            {{-- السوبر أدمن مايعدّلش ولا يحذف سوبر أدمن تاني: بنخفي الأزرار (والسيرفر بيرفض برضو) --}}
+                            @if(! $admin->is_super || $admin->id === auth()->id())
                             <button class="btn btn-icon btn-light" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#editAdminModal{{ $admin->id }}" 
                                     aria-label="Edit">
                                 <i class="bi bi-pencil text-primary"></i>
                             </button>
+                            @else
+                                <span class="text-muted small">محمي</span>
+                            @endif
 
-                            @if($admin->id !== auth()->id())
-                                <form action="{{ route('admin.admins.destroy', $admin->id) }}" method="POST" class="d-inline delete-form">
+                            @if($admin->id !== auth()->id() && ! $admin->is_super)
+                                <form action="{{ route('admin.admins.destroy', $admin->id) }}" method="POST" class="d-inline js-secure-form" data-confirm-text="حذف حساب هذا الأدمن نهائياً. أدخل كلمة السر الخاصة بك للتأكيد.">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-icon btn-light text-danger" aria-label="Delete">
@@ -192,13 +198,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.delete-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
-            if (!confirm('Are you sure you want to delete this administrator account?')) {
-                e.preventDefault();
-            }
-        });
-    });
 });
 </script>
 @endpush

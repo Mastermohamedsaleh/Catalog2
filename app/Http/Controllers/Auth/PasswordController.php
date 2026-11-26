@@ -29,8 +29,8 @@ class PasswordController extends Controller
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ], [
-            'current_password.current_password' => 'The current password is incorrect.',
-            'password.confirmed' => 'The new password and its confirmation do not match.',
+            'current_password.current_password' => __('The current password is incorrect.'),
+            'password.confirmed' => __('The new password and its confirmation do not match.'),
         ]);
 
         if ($validator->fails()) {
@@ -43,6 +43,6 @@ class PasswordController extends Controller
             'password' => Hash::make($request->input('password')),
         ]);
 
-        return redirect()->route($profile)->with('success', 'Password updated successfully.');
+        return redirect()->route($profile)->with('success', __('Password updated successfully.'));
     }
 }

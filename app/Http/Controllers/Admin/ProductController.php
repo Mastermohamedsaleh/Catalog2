@@ -99,6 +99,12 @@ class ProductController extends Controller
         ];
     }
 
+    /** رسالة الأدمن (عربي): مجموع المقاسات لازم يساوي الإجمالي. */
+    private function stockMismatchMessage(int $total, int $sum): string
+    {
+        return "مجموع مخزون المقاسات ({$sum}) لا يساوي المخزون الإجمالي ({$total}). وزّع الإجمالي على المقاسات بحيث يكون مجموعها {$total} بالظبط، أو غيّر الإجمالي ليطابق المجموع.";
+    }
+
     /** Variant rows with a size or a color, one per (size, color) pair. */
     private function submittedVariants(Request $request): array
     {
@@ -153,6 +159,14 @@ class ProductController extends Controller
     {
         $request->validate($this->rules(), $this->messages());
         $variants = $this->submittedVariants($request);
+
+        // المخزون الإجمالي هو الأساس: لو فيه مقاسات لازم مجموعها يساوي الإجمالي بالظبط (مفيش تعديل صامت في الإجمالي).
+        if ($variants) {
+            $sum = array_sum(array_column($variants, 'stock'));
+            if ($sum !== (int) $request->stock) {
+                throw ValidationException::withMessages(['stock' => $this->stockMismatchMessage((int) $request->stock, $sum)]);
+            }
+        }
 
         // لينك التنزيل من غير لينك يوتيوب ملوش معنى. بنرفضه قبل أي رفع صور.
         if (! VideoLinks::youtubeId($request->input('video_url')) && $request->filled('video_download_url')) {
@@ -267,6 +281,23 @@ class ProductController extends Controller
                     }
                 }
 
+                // مجموع المقاسات (بعد حساب القيم الحية للمقاسات اللي ماتلمسهاش) لازم يساوي المخزون الإجمالي.
+                $effective = [];
+                if ($variants) {
+                    $byKeyLive = $existing->keyBy(fn ($r) => mb_strtolower($r->size . '|' . $r->color));
+                    foreach ($variants as $key => $v) {
+                        $row = $byKeyLive->get($key);
+                        $effective[$key] = ($row && $v['original_stock'] !== null && $v['original_stock'] === $v['stock']) ? (int) $row->stock : (int) $v['stock'];
+                    }
+                    $originalTotal = $request->filled('original_stock') ? (int) $request->original_stock : null;
+                    // الإجمالي ماتغيرش في الفورم => المخزون الحي (ممكن الأوردرات غيّرته). اتغير => اللي الأدمن كتبه.
+                    $target = ($originalTotal !== null && $originalTotal === (int) $request->stock) ? (int) $locked->stock : (int) $request->stock;
+                    $sum = array_sum($effective);
+                    if ($sum !== $target) {
+                        throw ValidationException::withMessages(['stock' => $this->stockMismatchMessage($target, $sum)]);
+                    }
+                }
+
                 if ($newMain) { $toDelete[] = $locked->main_image; }
                 if (($newVideo && $newVideo !== $locked->video_url) || $removeVideo) { $oldVideo = $locked->video_url; }
 
@@ -297,9 +328,7 @@ class ProductController extends Controller
                     foreach ($variants as $key => $v) {
                         $row = $byKey->get($key);
                         if ($row) {
-                            // Stock field untouched by the admin => keep the live stock (orders may have changed it).
-                            $stock = ($v['original_stock'] !== null && $v['original_stock'] === $v['stock']) ? $row->stock : $v['stock'];
-                            $row->update(['stock' => $stock, 'price_modifier' => $v['price_modifier']]);
+                            $row->update(['stock' => $effective[$key], 'price_modifier' => $v['price_modifier']]);
                         } else {
                             ProductVariant::create([
                                 'product_id' => $locked->id, 'size' => $v['size'], 'color' => $v['color'],

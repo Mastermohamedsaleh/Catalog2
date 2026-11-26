@@ -27,7 +27,9 @@ class OrderController extends Controller
             ->latest()->latest('id')
             ->paginate(15);
 
-        return view('frontend.merchant-orders', compact('orders'));
+        $paidKeys = \App\Support\DeliveryFee::paidKeys(Auth::id());
+
+        return view('frontend.merchant-orders', compact('orders', 'paidKeys'));
     }
 
     // البحث هنا من الداتابيز مباشرة من غير كاش، وده مقصود: التاجر لازم يشوف المخزون الحقيقي لحظة الطلب.
@@ -67,10 +69,10 @@ class OrderController extends Controller
             'notes'              => 'nullable|string|max:500',
             'selling_price'      => 'required|numeric|min:0|max:99999999',
         ], [
-            'customer_phone.regex' => 'رقم هاتف العميل غير صحيح. ' . Phone::message(),
-            'emirate.required'       => 'اختر الإمارة التي يقيم فيها الزبون.',
-            'emirate.in'             => 'الإمارة المختارة غير صحيحة.',
-            'customer_type.required' => 'حدد هل الزبون جديد أم قديم.',
+            'customer_phone.regex' => "The customer's phone number is not valid. " . Phone::message(),
+            'emirate.required'       => "Please choose the emirate where the customer lives.",
+            'emirate.in'             => 'The selected emirate is not valid.',
+            'customer_type.required' => 'Please choose whether the customer is new or returning.',
         ]);
 
         $qty = (int) $data['stock'];
@@ -82,7 +84,7 @@ class OrderController extends Controller
                 $product = Product::whereKey($data['product_id'])->lockForUpdate()->firstOrFail();
 
                 if (! $product->is_active) {
-                    throw ValidationException::withMessages(['product_id' => 'هذا المنتج غير متاح للطلب حالياً.']);
+                    throw ValidationException::withMessages(['product_id' => 'This product is not available to order right now.']);
                 }
 
                 $variant = null;
@@ -90,34 +92,43 @@ class OrderController extends Controller
 
                 if ($hasVariants) {
                     if (empty($data['product_variant_id'])) {
-                        throw ValidationException::withMessages(['product_variant_id' => 'هذا المنتج يحتوي على مقاسات وألوان، يجب اختيار المقاس المطلوب بدقة!']);
+                        throw ValidationException::withMessages(['product_variant_id' => 'This product has sizes/colors. Please choose the size you need.']);
                     }
                     $variant = ProductVariant::where('product_id', $product->id)
                         ->whereKey($data['product_variant_id'])->lockForUpdate()->first();
                     if (! $variant) {
-                        throw ValidationException::withMessages(['product_variant_id' => 'المقاس المختار غير صالح لهذا المنتج!']);
+                        throw ValidationException::withMessages(['product_variant_id' => 'The selected size is not valid for this product.']);
                     }
                 } elseif (! empty($data['product_variant_id'])) {
-                    throw ValidationException::withMessages(['product_variant_id' => 'هذا المنتج لا يحتوي على مقاسات.']);
+                    throw ValidationException::withMessages(['product_variant_id' => 'This product has no size options.']);
                 }
 
                 $cost = Money::fromCents(Money::toCents($product->price) + ($variant ? Money::toCents($variant->price_modifier) : 0));
 
-                if (Money::toCents($data['selling_price']) < Money::toCents($cost)) {
-                    throw ValidationException::withMessages(['selling_price' => 'سعر البيع للعميل يجب ألا يكون أقل من سعر أساس المنتج!']);
+                $minProfit = Money::toCents(config('shop.min_profit'));
+                if (Money::toCents($data['selling_price']) < Money::toCents($cost) + $minProfit) {
+                    $minSelling = Money::fromCents(Money::toCents($cost) + $minProfit);
+                    throw ValidationException::withMessages(['selling_price' => "Your profit must be at least " . Money::fromCents($minProfit) . " " . config('shop.currency') . " per item. The selling price must be at least {$minSelling} " . config('shop.currency') . " (cost {$cost} + minimum profit)."]);
                 }
 
-                // نفس التاجر + نفس المنتج/المقاس/الموبايل/الكمية خلال دقيقة = ضغطة مكررة على الزرار.
+                $maxSelling = (int) round(Money::toCents($cost) * (float) config('shop.max_markup'));
+                if (Money::toCents($data['selling_price']) > $maxSelling) {
+                    throw ValidationException::withMessages(['selling_price' => "The selling price is too high. The maximum allowed for this product is " . Money::fromCents($maxSelling) . " " . config('shop.currency') . " (" . config('shop.max_markup') . "× the cost)."]);
+                }
+
+                // نفس التاجر + نفس المنتج/المقاس/الموبايل/الكمية/سعر البيع/العنوان خلال 15 ثانية = ضغطة مكررة على الزرار (مش أوردر جديد).
                 $duplicate = Order::where('user_id', Auth::id())
                     ->where('product_id', $product->id)
                     ->where('product_variant_id', $variant?->id)
                     ->where('customer_phone', $data['customer_phone'])
                     ->where('stock', $qty)
+                    ->where('selling_price', $data['selling_price'])
+                    ->where('customer_address', $data['customer_address'])
                     ->where('status', 'pending')
-                    ->where('created_at', '>=', now()->subMinute())
+                    ->where('created_at', '>=', now()->subSeconds(15))
                     ->exists();
                 if ($duplicate) {
-                    throw ValidationException::withMessages(['error' => 'تم تسجيل نفس الأوردر منذ لحظات، لن يتم تكراره.']);
+                    throw ValidationException::withMessages(['error' => 'This exact order was placed a few seconds ago, so it was not submitted twice. If you really need another one, wait 15 seconds.']);
                 }
 
                 // خصم المخزون. وجوه StockService بيتمسح كاش المنتج ده تلقائياً بعد الـ commit.
@@ -141,8 +152,8 @@ class OrderController extends Controller
                     'notes'              => filled($data['notes'] ?? null) ? trim($data['notes']) : null,
                     'product_price'      => $cost,
                     'selling_price'      => $data['selling_price'],
-                    // رسوم التوصيل (30 درهم) بتتسجل مع الأوردر نفسه ومش بتدخل في ربح التاجر.
-                    'delivery_fee'       => Money::fromCents(Money::toCents(config('shop.delivery_fee'))),
+                    // رسوم التوصيل (30 درهم) مرة واحدة لكل توصيلة (نفس العميل والعنوان خلال 24 ساعة)، ومش بتدخل في ربح التاجر.
+                    'delivery_fee'       => \App\Support\DeliveryFee::forNewOrder(Auth::id(), $data['customer_phone'], $data['emirate'], $data['customer_address']),
                     'profit'             => Money::profit($data['selling_price'], $cost, $qty),
                     'stock'              => $qty,
                     'status'             => 'pending',
@@ -153,10 +164,10 @@ class OrderController extends Controller
             throw $e; // لارافل بترجّع التاجر للفورم برسائل الخطأ والبيانات اللي كتبها
         } catch (\Throwable $e) {
             Log::error('Merchant order failed', ['user' => Auth::id(), 'exception' => $e]);
-            return back()->withErrors(['error' => 'حدث خطأ ما، يرجى المحاولة لاحقاً.'])->withInput();
+            return back()->withErrors(['error' => 'Something went wrong. Please try again later.'])->withInput();
         }
 
-        return redirect()->route('merchant.orders.index')->with('success', 'تم تسجيل الأوردر بنجاح!');
+        return redirect()->route('merchant.orders.index')->with('success', 'Your order was placed successfully!');
     }
 
     public function cancel(Request $request, Order $order, OrderStatusService $service)
@@ -173,9 +184,9 @@ class OrderController extends Controller
             return back()->withErrors(['error' => $e->getMessage()]);
         } catch (\Throwable $e) {
             Log::error('Merchant cancel failed', ['order' => $order->id, 'exception' => $e]);
-            return back()->withErrors(['error' => 'حدث خطأ أثناء إلغاء الأوردر.']);
+            return back()->withErrors(['error' => 'Something went wrong while cancelling the order.']);
         }
 
-        return redirect()->route('merchant.orders.index')->with('success', 'تم إلغاء الأوردر بنجاح !');
+        return redirect()->route('merchant.orders.index')->with('success', 'Your order was cancelled.');
     }
 }

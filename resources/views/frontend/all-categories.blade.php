@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
   <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+@include('partials.theme-head')
 </head>
 <body class="d-flex flex-column min-vh-100">
 @include('partials.delivery-bar')
@@ -70,7 +71,7 @@
         </div>
     @empty
         <div class="col-12 text-center py-5">
-            <p class="text-muted">لا توجد أقسام متاحة حالياً.</p>
+            <p class="text-muted">No categories are available right now.</p>
         </div>
     @endforelse
   </div>
@@ -89,5 +90,6 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@include('partials.theme-toggle')
 </body>
 </html>

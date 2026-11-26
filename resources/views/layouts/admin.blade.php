@@ -97,6 +97,7 @@
         .g6 { background: linear-gradient(135deg, #d95a00, #f26a00); }
     </style>
     @stack('styles')
+@include('partials.theme-head')
 </head>
 <body>
 
@@ -173,6 +174,9 @@
     </script>
 
     <!-- Flash Notifications from Laravel Session -->
+    @if($errors->any() && ! View::hasSection('inline_errors'))
+        <script>showToast(@json($errors->first()), 'error', 7000);</script>
+    @endif
     @if(session('success'))
         <script>showToast(@json(session('success')), 'success');</script>
     @endif
@@ -180,6 +184,53 @@
         <script>showToast(@json(session('error')), 'error', 6000);</script>
     @endif
 
+
+    <!-- مودال تأكيد كلمة السر للعمليات الحساسة (حذف حساب / تصفير محفظة) -->
+    <div class="modal fade" id="secureConfirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" dir="rtl">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title"><i class="bi bi-shield-lock text-danger ms-2"></i>تأكيد العملية</h5>
+            <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-3" id="secureConfirmText"></p>
+            <label class="form-label small fw-semibold" for="secureConfirmPassword">كلمة السر الخاصة بحسابك الحالي ({{ auth()->user()->email }})</label>
+            <input type="password" class="form-control" id="secureConfirmPassword" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" dir="ltr">
+            <div class="text-danger small mt-2 d-none" id="secureConfirmError">اكتب كلمة السر أولاً.</div>
+          </div>
+          <div class="modal-footer border-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">إلغاء</button>
+            <button type="button" class="btn btn-danger" id="secureConfirmGo">تأكيد</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+    (function () {
+        var modalEl = document.getElementById('secureConfirmModal'), pending = null;
+        var input = document.getElementById('secureConfirmPassword'), err = document.getElementById('secureConfirmError');
+        document.addEventListener('submit', function (e) {
+            var f = e.target;
+            if (!f.classList || !f.classList.contains('js-secure-form') || f.dataset.confirmed === '1') return;
+            e.preventDefault(); pending = f;
+            document.getElementById('secureConfirmText').textContent = f.dataset.confirmText || 'أدخل كلمة السر للتأكيد.';
+            input.value = ''; err.classList.add('d-none');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+        modalEl.addEventListener('shown.bs.modal', function () { input.focus(); });
+        function go() {
+            if (!input.value) { err.classList.remove('d-none'); return; }
+            var h = document.createElement('input'); h.type = 'hidden'; h.name = 'confirm_password'; h.value = input.value;
+            pending.appendChild(h); pending.dataset.confirmed = '1'; input.value = '';
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide(); pending.submit();
+        }
+        document.getElementById('secureConfirmGo').addEventListener('click', go);
+        input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    })();
+    </script>
+
     @stack('scripts')
+@include('partials.theme-toggle', ['class' => 'tt-admin'])
 </body>
 </html>

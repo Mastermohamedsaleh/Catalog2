@@ -80,7 +80,7 @@
                                 <i class="bi bi-pencil text-primary"></i>
                             </button>
 
-                            <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="d-inline delete-form">
+                            <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-light text-danger" aria-label="Delete">
@@ -113,7 +113,7 @@
 @foreach($categories as $category)
 <div class="modal fade" id="editCategoryModal{{ $category->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 rounded-4 shadow-lg">
+        <form action="{{ route('admin.categories.update', $category) }}" method="POST" enctype="multipart/form-data" class="modal-content border-0 rounded-4 shadow-lg">
             @csrf
             @method('PUT')
             <div class="modal-header border-0 pb-0">
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function (e) {
-            if (!confirm('Are you sure you want to delete this category?')) {
+            if (!confirm('هل أنت متأكد من حذف هذا القسم؟')) {
                 e.preventDefault();
             }
         });

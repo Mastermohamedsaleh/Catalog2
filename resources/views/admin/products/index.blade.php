@@ -3,6 +3,7 @@
 @section('title', 'Products · AksSap Admin')
 @section('page_title', 'Store Products')
 
+@section('inline_errors', '1')
 @section('content')
 <div class="card-soft mb-4">
     <!-- Header, Search & Add Button -->
@@ -135,7 +136,7 @@
                             </button>
 
                             <!-- زرار الحذف -->
-                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline delete-form">
+                            <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" class="d-inline delete-form" data-name="{{ $product->name }}">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-light text-danger" title="Delete Product">
@@ -238,17 +239,20 @@
             </div>
             
             <div id="variantsSection" style="display: {{ old('has_variants') ? 'block' : 'none' }};">
-                <p class="small text-muted mb-2">أضف المقاسات والألوان المتاحة مع مخزونها الخاص (مجموع المخزون يجب أن يساوي المخزون الإجمالي):</p>
+                <p class="small text-muted mb-2">أضف المقاسات والألوان المتاحة مع مخزونها الخاص (مجموع المخزون يجب أن يساوي المخزون الإجمالي). خانة "فرق السعر" = المبلغ الذي يُضاف لسعر المنتج الأساسي لهذا المقاس (اتركها 0 إن كان السعر نفس الأساسي):</p>
                 <div id="variantsContainer">
                     <div class="row g-2 mb-2 variant-row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="text" class="form-control form-control-sm" name="variants[0][size]" placeholder="Size (e.g. S, M, L)">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <input type="text" class="form-control form-control-sm" name="variants[0][color]" placeholder="Color (e.g. Red, Black)">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <input type="number" class="form-control form-control-sm" name="variants[0][stock]" placeholder="Stock" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control form-control-sm" name="variants[0][price_modifier]" placeholder="+ فرق السعر" value="0" min="0" step="0.01" title="فرق السعر عن السعر الأساسي (يُضاف للسعر)">
                         </div>
                         <div class="col-md-1">
                             <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-variant" style="display:none;"><i class="bi bi-x"></i></button>
@@ -385,15 +389,18 @@
                     @if($product->variants->count() > 0)
                         @foreach($product->variants as $index => $variant)
                             <div class="row g-2 mb-2 edit-variant-row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <input type="text" class="form-control form-control-sm" name="variants[{{ $index }}][size]" value="{{ $variant->size }}" placeholder="Size">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <input type="text" class="form-control form-control-sm" name="variants[{{ $index }}][color]" value="{{ $variant->color }}" placeholder="Color">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <input type="number" class="form-control form-control-sm" name="variants[{{ $index }}][stock]" value="{{ $variant->stock }}" min="0" placeholder="Stock">
                                     <input type="hidden" name="variants[{{ $index }}][original_stock]" value="{{ $variant->stock }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control form-control-sm" name="variants[{{ $index }}][price_modifier]" placeholder="+ فرق السعر" value="{{ (float) $variant->price_modifier + 0 }}" min="0" step="0.01" title="فرق السعر عن السعر الأساسي (يُضاف للسعر)">
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-edit-variant"><i class="bi bi-x"></i></button>
@@ -402,14 +409,17 @@
                         @endforeach
                     @else
                         <div class="row g-2 mb-2 edit-variant-row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <input type="text" class="form-control form-control-sm" name="variants[0][size]" placeholder="Size">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <input type="text" class="form-control form-control-sm" name="variants[0][color]" placeholder="Color">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <input type="number" class="form-control form-control-sm" name="variants[0][stock]" placeholder="Stock" value="0">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control form-control-sm" name="variants[0][price_modifier]" placeholder="+ فرق السعر" value="0" min="0" step="0.01" title="فرق السعر عن السعر الأساسي (يُضاف للسعر)">
                             </div>
                             <div class="col-md-1">
                                 <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-edit-variant"><i class="bi bi-x"></i></button>
@@ -533,14 +543,17 @@ document.addEventListener('DOMContentLoaded', function () {
         addVariantBtn.addEventListener('click', function() {
             const rowHtml = `
                 <div class="row g-2 mb-2 variant-row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" class="form-control form-control-sm" name="variants[${variantIndex}][size]" placeholder="Size">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" class="form-control form-control-sm" name="variants[${variantIndex}][color]" placeholder="Color">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <input type="number" class="form-control form-control-sm" name="variants[${variantIndex}][stock]" placeholder="Stock" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" class="form-control form-control-sm" name="variants[${variantIndex}][price_modifier]" placeholder="+ فرق السعر" value="0" min="0" step="0.01" title="فرق السعر عن السعر الأساسي (يُضاف للسعر)">
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-variant"><i class="bi bi-x"></i></button>
@@ -591,14 +604,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const rowHtml = `
                 <div class="row g-2 mb-2 edit-variant-row">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" class="form-control form-control-sm" name="variants[${rowCount}][size]" placeholder="Size">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="text" class="form-control form-control-sm" name="variants[${rowCount}][color]" placeholder="Color">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <input type="number" class="form-control form-control-sm" name="variants[${rowCount}][stock]" placeholder="Stock" value="0">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" class="form-control form-control-sm" name="variants[${rowCount}][price_modifier]" placeholder="+ فرق السعر" value="0" min="0" step="0.01" title="فرق السعر عن السعر الأساسي (يُضاف للسعر)">
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-edit-variant"><i class="bi bi-x"></i></button>
@@ -673,5 +689,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+    // تأكيد قبل حذف المنتج (كان بيتحذف مباشرة)
+    document.querySelectorAll('.delete-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            var name = form.dataset.name || 'هذا المنتج';
+            if (!confirm('هل أنت متأكد من حذف المنتج "' + name + '"؟\nلا يمكن التراجع عن هذا الإجراء.')) e.preventDefault();
+        });
+    });
 </script>
 @endpush

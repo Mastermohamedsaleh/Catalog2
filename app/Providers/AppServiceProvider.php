@@ -27,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
+        // كلمة السر في كل مكان (تسجيل، تغيير، إعادة تعيين، أدمن جديد): 8 خانات على الأقل + حروف + أرقام.
+        \Illuminate\Validation\Rules\Password::defaults(fn () => \Illuminate\Validation\Rules\Password::min(8)->letters()->numbers());
+
         // خلف Cloudflare السيرفر بيشوف طلبات HTTP عادية جاية من البروكسي. من غير السطور دي
         // روابط الصور بتطلع http:// (mixed content) وكل الزوار بيظهروا بنفس الـ IP.
         if ($proxies = config('app.trusted_proxies')) {

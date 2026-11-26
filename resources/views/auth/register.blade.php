@@ -37,6 +37,7 @@
     .input-icon .form-control { padding-left: 2.6rem; border-radius: .65rem; padding-top: .65rem; padding-bottom: .65rem; border-color: #e2e8f0; }
     .input-icon .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 .22rem rgba(242, 106, 0, .15); }
   </style>
+@include('partials.theme-head')
 </head>
 <body>
 
@@ -144,5 +145,6 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@include('partials.theme-toggle')
 </body>
 </html>

@@ -16,6 +16,7 @@
   
   <!-- ربط ملف الـ CSS الخاص بالمشروع بالطريقة الصحيحة في لارافيل -->
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+@include('partials.theme-head')
 </head>
 <body>
 @include('partials.delivery-bar')
@@ -65,7 +66,7 @@
             <a href="#categories" class="btn btn-light btn-lg fw-semibold px-4">Browse products</a>
             <a href="https://wa.me/{{ config('shop.whatsapp') }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-whatsapp me-2"></i>Chat on WhatsApp</a>
           </div>
-          <div class="d-inline-flex align-items-center gap-2 mt-4 px-3 py-2 rounded-3" style="background:rgba(255,138,31,.18);border:1px solid rgba(255,138,31,.45)"><i class="bi bi-truck fs-5" style="color:#ffb000"></i><span class="small fw-semibold">Delivery is a flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} per order, charged separately from the product price.</span></div>
+          <div class="d-inline-flex align-items-center gap-2 mt-4 px-3 py-2 rounded-3" style="background:rgba(255,138,31,.18);border:1px solid rgba(255,138,31,.45)"><i class="bi bi-truck fs-5" style="color:#ffb000"></i><span class="small fw-semibold">Delivery is a flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} per delivery, charged separately from the product price (once for several orders to the same address).</span></div>
         </div>
         <div class="col-lg-5">
           <div class="row g-3">
@@ -111,7 +112,7 @@
     <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-lg-3">
       <div class="col"><div class="feature-card"><div class="feature-icon"><i class="bi bi-box-seam"></i></div><h3 class="h5 fw-bold">Wide product range</h3><p class="text-muted small mb-0">Watches, clothing, shoes, home items and more, chosen for what the market actually wants.</p></div></div>
       <div class="col"><div class="feature-card"><div class="feature-icon"><i class="bi bi-cash-coin"></i></div><h3 class="h5 fw-bold">You set your price</h3><p class="text-muted small mb-0">See each product's exact cost (size differences included) and its minimum selling price. Your profit is calculated for you before you send the order.</p></div></div>
-      <div class="col"><div class="feature-card" style="border:2px solid #ff8a1f"><div class="feature-icon"><i class="bi bi-truck"></i></div><h3 class="h5 fw-bold">Flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} delivery</h3><p class="text-muted small mb-0">One simple delivery fee per order, added on top of the product price. It is not part of your profit and there are no hidden shipping costs.</p></div></div>
+      <div class="col"><div class="feature-card" style="border:2px solid #ff8a1f"><div class="feature-icon"><i class="bi bi-truck"></i></div><h3 class="h5 fw-bold">Flat {{ number_format(config('shop.delivery_fee'), 0) }} {{ config('shop.currency') }} delivery</h3><p class="text-muted small mb-0">One simple delivery fee per delivery (orders to the same customer and address within 24 hours share it), added on top of the product price. It is not part of your profit and there are no hidden shipping costs.</p></div></div>
       <div class="col"><div class="feature-card"><div class="feature-icon"><i class="bi bi-lightning-charge"></i></div><h3 class="h5 fw-bold">Next-day delivery</h3><p class="text-muted small mb-0">Our shipping partner delivers your customer's order the day after it's placed.</p></div></div>
       <div class="col"><div class="feature-card"><div class="feature-icon"><i class="bi bi-camera-video"></i></div><h3 class="h5 fw-bold">Product data &amp; videos</h3><p class="text-muted small mb-0">Product details, photos and videos you can use in your ads, with live stock shown when you order.</p></div></div>
       <div class="col"><div class="feature-card"><div class="feature-icon"><i class="bi bi-calendar-check"></i></div><h3 class="h5 fw-bold">Paid 3 times a month</h3><p class="text-muted small mb-0">Track every order and your wallet in your dashboard. Receive your commission in EGP on the 1st, 10th and 20th.</p></div></div>
@@ -158,7 +159,7 @@
           </div>
       @empty
           <div class="col-12 text-center py-4">
-              <p class="text-muted">لا توجد أقسام مضافة حالياً في قاعدة البيانات.</p>
+              <p class="text-muted">Categories are coming soon. Please check back shortly.</p>
           </div>
       @endforelse
     </div>
@@ -180,7 +181,8 @@
     <div class="accordion mx-auto" id="faq" style="max-width:820px">
       @foreach([
         ['Do I need experience?', "No. Dropshipping needs no stock and no shipping work: pick products, send us your customer's order, and we deliver."],
-        ['How much is delivery?', 'A flat ' . number_format(config('shop.delivery_fee'), 0) . ' ' . config('shop.currency') . ' per order, charged to the customer on top of the product price. It is separate from the product price and is not part of your profit.'],
+        ['How much is delivery?', 'A flat ' . number_format(config('shop.delivery_fee'), 0) . ' ' . config('shop.currency') . ' per delivery, charged to the customer on top of the product price. If the same customer orders several items to the same address within 24 hours, the fee is charged once. It is separate from the product price and is not part of your profit.'],
+        ['How do I get paid?', 'In EGP, 3 times a month: the 1st, 10th and 20th.'],
         ['Who handles shipping?', 'Our shipping partner, delivering the next day.'],
         ['Who sets my selling price?', 'You add your margin, and we recommend the best price for each product.'],
       ] as $i => [$q, $a])
@@ -228,5 +230,6 @@
 <!-- ربط ملف الـ JS الخاص بالمشروع بطريقة لارافيل -->
 <script src="{{ asset('assets/js/app.js') }}"></script>
 
+@include('partials.theme-toggle')
 </body>
 </html>

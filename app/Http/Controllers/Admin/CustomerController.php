@@ -48,9 +48,10 @@ class CustomerController extends Controller
     /**
      * تصفير محفظة التاجر / العميل (سحب الأرباح)
      */
-    public function zeroWallet(User $customer)
+    public function zeroWallet(Request $request, User $customer)
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403); // فلوس: سوبر أدمن بس (حماية فوق الـ middleware)
+        $this->requirePasswordConfirmation($request);
         $this->ensureManageable($customer);
 
         try {
@@ -94,20 +95,24 @@ class CustomerController extends Controller
     {
         $this->ensureManageable($customer);
 
-        $newPassword = Str::password(14, symbols: false);
+        // عشوائي بس لازم يحتوي حروف وأرقام (Str::password لوحده ممكن يطلع حروف بس).
+        do {
+            $newPassword = Str::password(14, symbols: false);
+        } while (! preg_match('/[A-Za-z]/', $newPassword) || ! preg_match('/[0-9]/', $newPassword));
 
         $customer->forceFill(['password' => Hash::make($newPassword)])->save();
 
         return back()->with('success', "تم إعادة تعيين كلمة السر بنجاح! كلمة السر الجديدة للتاجر ({$customer->name}) هي: {$newPassword}");
     }
 
-    public function destroy(User $customer)
+    public function destroy(Request $request, User $customer)
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403); // حذف حسابات: سوبر أدمن بس
+        $this->requirePasswordConfirmation($request);
         $this->ensureManageable($customer);
 
         if ($customer->id === auth()->id()) {
-            return back()->with('error', 'You cannot delete your own account!');
+            return back()->with('error', 'لا يمكنك حذف حسابك الشخصي.');
         }
 
         // Orders and the wallet ledger are financial records: never delete them with the user.
@@ -123,6 +128,6 @@ class CustomerController extends Controller
         $customer->delete();
 
         return redirect()->route('admin.customers.index')
-                         ->with('success', 'Customer deleted successfully!');
+                         ->with('success', 'تم حذف التاجر بنجاح.');
     }
 }

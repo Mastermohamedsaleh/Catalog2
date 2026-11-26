@@ -62,9 +62,9 @@ class RegisteredUserController extends Controller
             'last_name.required'  => 'Please enter your last name.',
             'last_name.min'       => 'Last name must be at least 2 letters.',
             'last_name.regex'     => 'Last name can only contain letters.',
-            'phone.required' => 'رقم الهاتف مطلوب.',
+            'phone.required' => 'Please enter your phone number.',
             'phone.regex'    => Phone::message(),
-            'phone.unique'   => 'رقم الهاتف مستخدم من قبل، يرجى استخدام رقم آخر.',
+            'phone.unique'   => 'This phone number is already registered. Please use a different number.',
         ]);
 
         $user = User::create([

@@ -12,6 +12,7 @@
   <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
   @stack('styles')
+@include('partials.theme-head')
 </head>
 <body class="d-flex flex-column min-vh-100">
 <div id="toastTop" aria-live="polite"></div>
@@ -54,5 +55,6 @@
 @if(session('success'))<script>showToast(@json(session('success')), 'success');</script>@endif
 @if(session('error'))<script>showToast(@json(session('error')), 'error', 6000);</script>@endif
 @stack('scripts')
+@include('partials.theme-toggle', ['class' => 'tt-admin'])
 </body>
 </html>

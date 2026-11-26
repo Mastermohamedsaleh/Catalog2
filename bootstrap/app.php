@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class, // ← السوبر أدمن هنا
     ]);
     $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+    $middleware->web(append: [\App\Http\Middleware\SetLocaleByRole::class]);
 })
     ->withExceptions(function (Exceptions $exceptions) {
         //

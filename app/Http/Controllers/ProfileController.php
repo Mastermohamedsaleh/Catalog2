@@ -59,7 +59,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return redirect()->route($this->homeRoute($user))->with('success', 'Profile updated successfully.');
+        return redirect()->route($this->homeRoute($user))->with('success', __('Profile updated successfully.'));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -98,16 +98,16 @@ class ProfileController extends Controller
     private function deletionBlocker(User $user): ?string
     {
         if ($user->isAdmin()) {
-            return 'Admin accounts can only be removed by a super admin.';
+            return __('Admin accounts can only be removed by a super admin.');
         }
 
         if (Order::query()->where('user_id', $user->id)->exists()) {
-            return 'This account has orders, so it cannot be deleted. Please contact support.';
+            return __('This account has orders, so it cannot be deleted. Please contact support.');
         }
 
         $wallet = $user->wallet;
         if ($wallet && ((float) $wallet->balance > 0 || WalletTransaction::where('wallet_id', $wallet->id)->exists())) {
-            return 'This account has wallet history, so it cannot be deleted. Please contact support.';
+            return __('This account has wallet history, so it cannot be deleted. Please contact support.');
         }
 
         return null;

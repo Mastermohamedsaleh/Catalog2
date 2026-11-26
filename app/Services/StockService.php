@@ -35,7 +35,7 @@ class StockService
 
             if ($affected === 0) {
                 throw ValidationException::withMessages([
-                    'stock' => 'عذراً، نفد مخزون هذا المقاس بالكمية المطلوبة حالياً!',
+                    'stock' => 'Sorry, this size does not have enough stock for the quantity you asked for.',
                 ]);
             }
 
@@ -49,7 +49,7 @@ class StockService
 
         if ($affected === 0) {
             throw ValidationException::withMessages([
-                'stock' => 'عذراً، نفد مخزون هذا المنتج بالكمية المطلوبة حالياً!',
+                'stock' => 'Sorry, this product does not have enough stock for the quantity you asked for.',
             ]);
         }
 

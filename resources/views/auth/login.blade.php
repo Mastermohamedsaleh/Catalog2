@@ -38,6 +38,7 @@
     .input-icon .form-control:focus { border-color: var(--brand); box-shadow: 0 0 0 .22rem rgba(242, 106, 0, .15); }
     .input-icon .toggle-pass { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); border: none; background: none; }
   </style>
+@include('partials.theme-head')
 </head>
 <body>
 
@@ -128,5 +129,6 @@
     });
   });
 </script>
+@include('partials.theme-toggle')
 </body>
 </html>

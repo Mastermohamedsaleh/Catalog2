@@ -14,7 +14,8 @@ class ProfileUpdateRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->has('phone')) {
-            $this->merge(['phone' => Phone::normalize((string) $this->input('phone'))]);
+            $raw = trim((string) $this->input('phone'));
+            $this->merge(['phone' => $raw === '' ? null : Phone::normalize($raw)]); // فاضي = null (الأدمن ممكن مايكونش عنده رقم)
         }
     }
 
@@ -35,8 +36,9 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            // الرقم إجباري للتاجر (للسحب والتواصل). الأدمن مش مضطر يكون عنده رقم.
             'phone' => [
-                'required',
+                $this->user()->isAdmin() ? 'nullable' : 'required',
                 'string',
                 Phone::rule(),
                 Rule::unique(User::class)->ignore($this->user()->id),

@@ -79,7 +79,7 @@
                         <td class="text-end text-nowrap">
                             @if(auth()->user()->isSuperAdmin())
                             <!-- زرار تصفير الخزنة / سحب الأرباح -->
-                            <form action="{{ route('admin.customers.zeroWallet', $customer->id) }}" method="POST" class="d-inline zero-wallet-form">
+                            <form action="{{ route('admin.customers.zeroWallet', $customer->id) }}" method="POST" class="d-inline js-secure-form" data-confirm-text="تصفير محفظة هذا التاجر وسحب الأرباح بالكامل. أدخل كلمة السر الخاصة بك للتأكيد.">
                                 @csrf
                                 <button type="submit" class="btn btn-outline-success btn-sm me-1" title="Zero Wallet & Withdraw" {{ ($customer->wallet->balance ?? 0) <= 0 ? 'disabled' : '' }}>
                                     <i class="bi bi-cash-coin"></i> Zero Wallet
@@ -97,7 +97,7 @@
 
                             @if(auth()->user()->isSuperAdmin())
                             <!-- زرار الحذف -->
-                            <form action="{{ route('admin.customers.destroy', $customer->id) }}" method="POST" class="d-inline delete-form">
+                            <form action="{{ route('admin.customers.destroy', $customer->id) }}" method="POST" class="d-inline js-secure-form" data-confirm-text="حذف حساب هذا التاجر نهائياً. أدخل كلمة السر الخاصة بك للتأكيد.">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-light text-danger btn-sm" title="Delete Customer">
@@ -131,32 +131,15 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // تأكيد الحذف
-    document.querySelectorAll('.delete-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
-            if (!confirm('Are you sure you want to delete this customer account?')) {
-                e.preventDefault();
-            }
-        });
-    });
-
     // تأكيد إعادة تعيين كلمة السر
     document.querySelectorAll('.reset-form').forEach(form => {
         form.addEventListener('submit', function (e) {
-            if (!confirm('Are you sure you want to reset this customer password?')) {
+            if (!confirm('هل أنت متأكد من إعادة تعيين كلمة سر هذا التاجر؟')) {
                 e.preventDefault();
             }
         });
     });
 
-    // تأكيد تصفير المحفظة
-    document.querySelectorAll('.zero-wallet-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
-            if (!confirm('هل أنت متأكد من تصفير محفظة هذا التاجر وسحب الأرباح بالكامل؟')) {
-                e.preventDefault();
-            }
-        });
-    });
 });
 </script>
 @endpush

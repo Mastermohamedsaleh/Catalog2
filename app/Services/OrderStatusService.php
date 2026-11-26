@@ -53,6 +53,7 @@ class OrderStatusService
             if (in_array($to, ['cancelled', 'returned'], true)) {
                 $this->stock->release($order);
                 $order->cancellation_reason = $reason;
+                \App\Support\DeliveryFee::releaseFeeFrom($order); // رسوم التوصيل تنتقل لأوردر تاني لنفس العميل لو فيه
             } else {
                 $order->cancellation_reason = null;
             }
@@ -76,13 +77,14 @@ class OrderStatusService
             $order = Order::whereKey($orderId)->where('user_id', $userId)->lockForUpdate()->firstOrFail();
 
             if ($order->status !== 'pending') {
-                throw new DomainException('عذراً، لقد تغيرت حالة الأوردر بواسطة الإدارة، ولم يعد متاحاً إلغاؤه!');
+                throw new DomainException('Sorry, this order has already been updated by our team and can no longer be cancelled.');
             }
 
             $this->stock->release($order);
 
             $order->status = 'cancelled';
-            $order->cancellation_reason = $reason ?: 'تم إلغاء الطلب بواسطة التاجر.';
+            $order->cancellation_reason = $reason ?: 'Cancelled by the merchant.';
+            \App\Support\DeliveryFee::releaseFeeFrom($order);
             $order->save();
 
             return $order;
@@ -101,7 +103,7 @@ class OrderStatusService
             'order_id'    => $order->id,
             'type'        => 'credit',
             'amount'      => $order->profit,
-            'description' => "أرباح تسليم الطلب رقم #{$order->id}",
+            'description' => "Profit from delivered order #{$order->id}",
         ]);
 
         $wallet->increment('balance', $order->profit);

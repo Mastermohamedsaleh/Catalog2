@@ -1,0 +1,10 @@
+{
+    "Profile updated successfully.": "تم تحديث الملف الشخصي بنجاح.",
+    "Password updated successfully.": "تم تغيير كلمة السر بنجاح.",
+    "The current password is incorrect.": "كلمة السر الحالية غير صحيحة.",
+    "The new password and its confirmation do not match.": "كلمة السر الجديدة وتأكيدها غير متطابقين.",
+    "Admin accounts can only be removed by a super admin.": "حسابات الأدمن لا يحذفها إلا السوبر أدمن.",
+    "This account has orders, so it cannot be deleted. Please contact support.": "هذا الحساب له أوردرات فلا يمكن حذفه.",
+    "This account has wallet history, so it cannot be deleted. Please contact support.": "هذا الحساب له حركات في المحفظة فلا يمكن حذفه.",
+    "Please enter a valid UAE mobile number, for example 0501234567 or +971501234567.": "رقم الموبايل غير صحيح. اكتب رقماً إماراتياً مثل 0501234567 أو +971501234567."
+}

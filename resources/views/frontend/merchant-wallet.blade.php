@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="{{ asset('assets/img/apple-touch-icon.png') }}">
   <link href="{{ asset('assets/css/brand.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+@include('partials.theme-head')
 </head>
 <body class="d-flex flex-column min-vh-100">
 <div id="toastTop" aria-live="polite"></div>
@@ -168,5 +169,6 @@
 <!-- ============ Scripts ============ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('assets/js/app.js') }}"></script>
+@include('partials.theme-toggle')
 </body>
 </html>

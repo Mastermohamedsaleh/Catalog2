@@ -51,6 +51,7 @@
         .site-footer { background: var(--sidebar); color: #94a3b8; }
     </style>
     @stack('styles')
+@include('partials.theme-head')
 </head>
 <body>
 @include('partials.delivery-bar')
@@ -98,5 +99,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')
+@include('partials.theme-toggle')
 </body>
 </html>
