@@ -52,7 +52,7 @@ return [
 
     // مدة "التوصيلة الواحدة" بالدقايق: أوردرات نفس العميل والعنوان خلالها بتدفع التوصيل مرة واحدة (1440 = 24 ساعة).
     // للتجربة اكتب 1 (دقيقة) ثم php artisan config:clear، وبعد التجربة رجّعها 1440.
-    'delivery_window_minutes' => 1,
+    'delivery_window_minutes' => 1440,
 
     'delivery_fee' => (float) env('SHOP_DELIVERY_FEE', 30),
 
