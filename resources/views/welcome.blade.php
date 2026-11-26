@@ -182,7 +182,7 @@
       @foreach([
         ['Do I need experience?', "No. Dropshipping needs no stock and no shipping work: pick products, send us your customer's order, and we deliver."],
         ['How much is delivery?', 'A flat ' . number_format(config('shop.delivery_fee'), 0) . ' ' . config('shop.currency') . ' per delivery, charged to the customer on top of the product price. If the same customer orders several items to the same address within 24 hours, the fee is charged once. It is separate from the product price and is not part of your profit.'],
-        ['How do I get paid?', 'In EGP, 3 times a month: the 1st, 10th and 20th.'],
+
         ['Who handles shipping?', 'Our shipping partner, delivering the next day.'],
         ['Who sets my selling price?', 'You add your margin, and we recommend the best price for each product.'],
       ] as $i => [$q, $a])
