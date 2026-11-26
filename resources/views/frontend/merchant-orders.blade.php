@@ -43,7 +43,7 @@
     <button class="btn btn-light d-lg-none" data-sidebar-toggle aria-label="Menu"><i class="bi bi-list fs-5"></i></button>
     <h1 class="h5 fw-bold mb-0 me-auto">New order</h1>
     <a href="{{ route('merchant.wallet') }}" class="btn btn-light btn-sm d-flex align-items-center gap-2" title="Wallet balance">
-      <i class="bi bi-wallet2 text-primary"></i><span class="fw-semibold">{{ \App\Models\Order::where('user_id', Auth::id())->where('status', 'delivered')->sum('profit') }} {{ config('shop.currency') }}</span>
+      <i class="bi bi-wallet2 text-primary"></i><span class="fw-semibold">{{ number_format((float) (Auth::user()->wallet->balance ?? 0), 2, '.', '') }} {{ config('shop.currency') }}</span>
     </a>
     <div class="dropdown">
       <a href="#" class="d-flex align-items-center gap-2 text-dark" data-bs-toggle="dropdown">
